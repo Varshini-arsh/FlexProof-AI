@@ -1,0 +1,39 @@
+schema_version: "1.0.0"
+scenario_id: FP-001
+random_seed: 20261014
+facility:
+  critical_inference_mw: 12.0
+  fixed_auxiliary_mw: 4.0
+  deferrable_compute_mw: 4.0
+battery:
+  capacity_mwh: 10.0
+  initial_soc: 0.35
+  min_soc: 0.20
+  max_soc: 1.0
+  max_discharge_mw: 3.0
+  max_charge_mw: 2.0
+  charge_efficiency: 0.95
+  discharge_efficiency: 0.95
+grid_event:
+  start_minute: 0
+  requested_reduction_mw: 5.0
+  duration_minutes: 60
+  interval_minutes: 5
+  target_complete_event_success_probability: 0.95
+recovery:
+  horizon_minutes: 240
+  interval_minutes: 5
+  nominal_base_demand_mw: 17.0
+  grid_import_ceiling_mw: 20.0
+  target_soc: 0.35
+  target_minute: 300
+  clear_deferred_work_by_minute: 300
+  assumptions:
+    - 17 MW is an explicit planning baseline, not derived from event telemetry.
+    - It represents non-flexible demand plus scheduled non-deferred compute.
+    - Deferred workload remains queued and is scheduled as recovery load.
+    - Workload recovery and battery charging share one grid capacity budget.
+workloads:
+  work_unit: MW_equivalent_hour
+  max_deferral_minutes: 300
+controller: rule_based

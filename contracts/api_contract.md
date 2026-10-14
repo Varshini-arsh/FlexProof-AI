@@ -1,0 +1,3 @@
+# Engine contract schema 1.0.0
+
+Planned stable calls: flexproof.engine.evaluate_commitment(config) and flexproof.engine.run_scenario(config, controller="rafc_v"). Config and result objects are JSON-compatible. Config includes scenario ID, facility, battery, workloads, grid event, recovery, random seed, controller, and reliability target. Results include status, accepted commitment or rejection reason, statistical reliability evidence, event/recovery telemetry, violations, solver metadata, seed, and assumptions. Status values: completed, infeasible, solver_error, invalid_input. Estimates must be distinguished from confidence bounds.
