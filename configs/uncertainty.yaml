@@ -1,0 +1,10 @@
+# Initial research assumptions; replace with measured facility data when available.
+initial_soc_error_bound: 0.015
+critical_power_std_mw: 0.1
+critical_power_truncation_mw: 0.3
+urgent_reclaim_probability: 0.10
+urgent_reclaim_mw: 0.4
+battery_derating_probability: 0.05
+battery_derating_fraction: 0.10
+grid_meter_noise_std_mw: 0.02
+random_seed_policy: "derive independent development/calibration/test streams; never reuse test outcomes for calibration"
