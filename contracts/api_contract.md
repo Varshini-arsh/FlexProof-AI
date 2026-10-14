@@ -17,3 +17,5 @@ Inputs may be a YAML/JSON path, a mapping, or `ScenarioConfig`. The input schema
 `evaluate_commitment` returns the candidate table, estimate, Wilson interval, simultaneous lower bound, seed, sample count, and evidence method. These are calibration outputs unless the caller deliberately supplies a held-out split; they must not be presented as held-out validation by default. `run_scenario` defaults the calibration seed to the scenario seed and keeps evidence labeled `calibration`.
 
 See `examples/fp001_scenario.json` and `examples/fp001_nominal_result.json` for valid fixtures. The nominal result fixture is one generated run and does not demonstrate reliability.
+
+The `evaluation.run_closed_loop` files are versioned experiment artifacts (`artifact_type: experiment_result`), not individual `run_scenario` result objects; they therefore do not replace or alter the schema 1.0.0 API contract. Their CSV/JSON values are standard JSON-compatible scalar, list, and mapping values. Member 2 should continue to integrate the per-scenario engine through `flexproof.engine`.

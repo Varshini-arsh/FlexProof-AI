@@ -52,3 +52,19 @@ def test_rolling_dispatch_rejects_observed_soc_below_protected_reserve():
                                         observations=observations)
     assert result["status"]=="infeasible"
     assert result["telemetry"]["event_time_series"]==[]
+
+
+def test_rolling_dispatch_does_not_use_future_observations_for_current_action():
+    nominal=[{} for _ in range(12)]
+    future_disturbance=[{} for _ in range(12)]
+    future_disturbance[8]={"available_flexible_compute_mw":0.0,
+        "battery_discharge_scale":0.0,"meter_noise_mw":0.2}
+    first=solve_rolling_event_dispatch(CONFIG,accepted_commitment_mw=4.0,
+        observations=nominal,delivery_margin_mw=0.05)
+    second=solve_rolling_event_dispatch(CONFIG,accepted_commitment_mw=4.0,
+        observations=future_disturbance,delivery_margin_mw=0.05)
+    first_row=first["telemetry"]["event_time_series"][0]
+    second_row=second["telemetry"]["event_time_series"][0]
+    assert first_row["flexible_compute_curtailment_mw"]==pytest.approx(
+        second_row["flexible_compute_curtailment_mw"])
+    assert first_row["battery_discharge_mw"]==pytest.approx(second_row["battery_discharge_mw"])

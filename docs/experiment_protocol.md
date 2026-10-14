@@ -33,3 +33,15 @@ The current larger run is checked in under `results/fp001-cal1000-test5000` (cal
 Joint event-and-recovery success matched event success for each controller in this run. All four nominal RecoveryGuard plans completed; modeled battery reserve violations were zero. RAFC-V and risk-aware MPC had identical commitments and outcomes (paired exact McNemar p=1.0). The comparison therefore supports the reliability-aware commitment reduction relative to attempting the full request, but shows no incremental RAFC-V improvement over risk-aware MPC for FP-001. This is a model-based result for one frozen setup, not evidence of general superiority.
 
 The output includes ablations for disabling reliability calibration (deterministic MPC vs risk-aware MPC), disabling recovery-aware commitment (risk-aware MPC vs RAFC-V), and disabling rolling re-optimization (RAFC-V fixed horizon vs rolling). For the nominal FP-001 schedule, rolling re-optimized 12 times and delivered a minimum measured reduction of 4.9465 MW for a 4.9 MW commitment; fixed-horizon delivered 4.9 MW. Both cleared the 4.0 MWh workload backlog and completed RecoveryGuard. Rolling ended at 25.04% SoC versus 25.53% for fixed-horizon, with nominal recovery peaks of 18.262 and 18.249 MW respectively. This schedule comparison does not establish a held-out rolling-control benefit: the held-out evaluator does not execute sequential controller actions. In FP-001, recovery-aware commitment selected the same MW as event-only risk calibration.
+
+## Corrected closed-loop protocol
+
+Run the three-arm closed-loop comparison with:
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.run_closed_loop --calibration-scenarios 1000 --calibration-seed 100000 --test-scenarios 5000 --test-seed 400000 --commitment-step-mw 0.1 --output-dir results/closed-loop-fp001-5000
+```
+
+The 1,000 calibration seeds (100000-100999) are distinct from the 5,000 held-out seeds (400000-404999), the 100-case smoke sample (300000-300099), and the analytical benchmark test range (200000-204999). Commitments are selected from calibration evidence only. The fixed-horizon plan includes the same one-sided 99% meter-noise margin as rolling dispatch. Rolling risk-aware MPC and RAFC-V share the rolling optimizer and RecoveryGuard; only RAFC-V calibration applies the recovery feasibility screen. Results, confidence intervals, failure counts, runtime, and limitations are in `RESULTS_AND_LIMITATIONS.md`.
+
+The earlier 42/100 fixed-horizon smoke outcome is withdrawn: its schedule omitted the rolling controller's meter margin. It must not be used as evidence. The corrected 100-case smoke run and 5,000-case held-out run use matched margins. The 5,000-case JSON/CSV are local, reproducible experiment artifacts and remain excluded from the code/docs commit because of their size.
