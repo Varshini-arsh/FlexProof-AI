@@ -32,7 +32,10 @@ def test_comparison_uses_shared_disjoint_heldout_set_and_exports(tmp_path):
     assert result["heldout_seed_start"]==2000
     assert result["computational_failure_rate"]==0
     assert result["evidence_complete"] is True
-    assert result["ablations"]["rolling_reoptimization_disabled"]["status"]=="not_implemented"
+    rolling=result["ablations"]["rolling_reoptimization_disabled"]
+    assert rolling["status"]=="nominal_schedule_comparison_only"
+    assert rolling["rolling"]["reoptimization_count"]==12
+    assert rolling["heldout_effect"].startswith("not_estimated")
     assert {row["controller"] for row in result["results"]}=={
         "rule_based","deterministic_mpc","risk_aware_mpc","rafc_v"}
     assert all(row["evidence_split"]=="heldout_test" for row in result["results"])

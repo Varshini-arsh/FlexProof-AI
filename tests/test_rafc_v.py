@@ -18,6 +18,8 @@ def test_rafc_v_integrates_calibrated_commitment_event_and_recovery():
     assert result["reliability"]["recovery_aware"] is True
     assert result["reliability"]["evidence_split"]=="calibration"
     assert result["reliability"]["confidence_lower_bound"]>=result["reliability"]["target"]
+    assert result["rafc_v"]["rolling_reoptimization"] is True
+    assert result["rafc_v"]["reoptimization_count"]==12
     recovery=result["recovery"]
     assert recovery["status"]=="completed"
     assert recovery["telemetry"]["final_battery_soc"]>=CONFIG["recovery"]["target_soc"]-1e-7
@@ -40,7 +42,7 @@ def test_rafc_v_preserves_solver_failure_without_fallback(monkeypatch):
     failure={"status":"solver_error","controller":"deterministic_mpc",
              "accepted_commitment_mw":3.0,"telemetry":{"event_time_series":[]},
              "violations":[]}
-    monkeypatch.setattr(module,"solve_deterministic_dispatch",lambda *args,**kwargs:dict(failure))
+    monkeypatch.setattr(module,"solve_rolling_event_dispatch",lambda *args,**kwargs:dict(failure))
     result=module.run_rafc_v(CONFIG,calibration_scenarios=20,calibration_seed=1200,
                              commitment_step_mw=1.0)
     assert result["status"]=="solver_error"

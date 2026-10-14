@@ -1,15 +1,19 @@
 """RAFC-V: reliability-aware commitment with explicit event and recovery plans."""
 from __future__ import annotations
 from typing import Any
+from statistics import NormalDist
 
 from baselines.deterministic_mpc import solve_deterministic_dispatch
 from optimization.commitment import calibrate_commitment
+from optimization.dispatch import solve_rolling_event_dispatch
 from optimization.recovery import plan_recovery
+from simulator.uncertainty import UncertaintyAssumptions
 
 
 def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
                calibration_seed: int = 100_000, commitment_step_mw: float = 0.1,
-               confidence: float = 0.95) -> dict:
+               confidence: float = 0.95, rolling_reoptimization: bool = True,
+               observations: list[dict[str,float]] | None = None) -> dict:
     """Calibrate an event commitment with a recovery feasibility screen, then optimize.
 
     Calibration evidence is distinct from held-out performance validation. The
@@ -29,7 +33,7 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
     recovery_failures=[]
     for row in passing:
         candidate=float(row["commitment_mw"])
-        dispatch=solve_deterministic_dispatch(config,accepted_commitment_mw=candidate)
+        dispatch=_dispatch(config,candidate,rolling_reoptimization,observations)
         if dispatch["status"]=="solver_error":
             return _solver_error_result(dispatch,calibration,calibration_seed,
                                         "Event optimizer failed; no fallback schedule was used.")
@@ -54,7 +58,7 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
 
     if chosen is None:
         commitment=0.0
-        event_result=solve_deterministic_dispatch(config,accepted_commitment_mw=commitment)
+        event_result=_dispatch(config,commitment,rolling_reoptimization,observations)
         if event_result["status"]=="solver_error":
             return _solver_error_result(event_result,calibration,calibration_seed,
                                         "Event optimizer failed; no fallback schedule was used.")
@@ -74,7 +78,9 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
 
     event_result["controller"]="rafc_v"
     event_result["controller_version"]="rafc-v-0.1.0"
-    event_result["commitment_basis"]="simultaneous reliability calibration with shared-capacity recovery screen; nominal RecoveryGuard plan verified"
+    event_result["commitment_basis"]=("simultaneous reliability calibration with shared-capacity recovery screen; "
+        +("rolling event dispatch and nominal RecoveryGuard plan verified" if rolling_reoptimization
+          else "fixed-horizon event dispatch and nominal RecoveryGuard plan verified"))
     event_result["reliability"]={
         "status":status,"estimate":evidence["estimated_reliability"] if evidence else None,
         "confidence_lower_bound":evidence["simultaneous_lower_bound"] if evidence else None,
@@ -90,11 +96,22 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
         "selected_candidate_evidence":evidence,
         "recovery_feasibility_screen":"cumulative workload and AC charging feasibility by deadline under one shared grid headroom budget",
         "recovery_rejections":recovery_failures,
+        "rolling_reoptimization":rolling_reoptimization,
+        "reoptimization_count":event_result.get("telemetry",{}).get("reoptimization_count",0),
         "limitations":calibration["limitations"]}
     if status!="confirmed":
         event_result["infeasibility_reason"]=("No commitment passed the calibrated reliability and nominal recovery checks." if passing
                                                else "No commitment met the simultaneous reliability lower-bound target with available calibration evidence.")
     return event_result
+
+
+def _dispatch(config,candidate,rolling,observations):
+    if not rolling:
+        return solve_deterministic_dispatch(config,accepted_commitment_mw=candidate)
+    assumptions=UncertaintyAssumptions()
+    margin=NormalDist().inv_cdf(0.99)*assumptions.meter_noise_std_mw
+    return solve_rolling_event_dispatch(config,accepted_commitment_mw=candidate,
+        observations=observations,delivery_margin_mw=margin)
 
 
 def _solver_error_result(event_result: dict, calibration: dict, seed: int,

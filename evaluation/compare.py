@@ -168,6 +168,26 @@ def compare_controllers(config: dict[str, Any], *, calibration_scenarios: int = 
                 paired_tests[metric][f"{first}_vs_{second}"]=exact_mcnemar(
                     heldout_outcomes[first][metric],heldout_outcomes[second][metric])
     by_name={row["controller"]:row for row in summaries}
+    fixed_rafc=run_rafc_v(config,calibration_scenarios=calibration_scenarios,
+        calibration_seed=calibration_seed,commitment_step_mw=commitment_step_mw,
+        rolling_reoptimization=False)
+    rolling_result=by_name.get("rafc_v",{}).get("controller_result",{})
+    def _schedule_evidence(item):
+        telemetry=item.get("telemetry",{})
+        event_rows=telemetry.get("event_time_series",[])
+        recovery=item.get("recovery") or {}
+        recovery_telemetry=recovery.get("telemetry",{})
+        return {"status":item.get("status"),
+            "reoptimization_count":telemetry.get("reoptimization_count",1),
+            "complete_event_success":item.get("complete_event_success"),
+            "minimum_delivered_reduction_mw":(min((r.get("delivered_reduction_mw",0.0)
+                for r in event_rows),default=None)),
+            "final_workload_backlog_mwh":telemetry.get("final_workload_backlog_mwh"),
+            "final_battery_soc":telemetry.get("final_battery_soc"),
+            "recovery_status":recovery.get("status"),
+            "recovery_max_import_mw":recovery_telemetry.get("max_grid_import_mw")}
+    rolling_evidence=_schedule_evidence(rolling_result)
+    fixed_evidence=_schedule_evidence(fixed_rafc)
     ablations={
         "reliability_calibration_disabled":{
             "comparison":"deterministic_mpc_vs_risk_aware_mpc",
@@ -188,8 +208,12 @@ def compare_controllers(config: dict[str, Any], *, calibration_scenarios: int = 
             "paired_event_and_recovery_test":paired_tests["event_and_recovery"].get(
                 "risk_aware_mpc_vs_rafc_v")},
         "rolling_reoptimization_disabled":{
-            "status":"not_implemented",
-            "reason":"Current controllers use a fixed event schedule; rolling event re-optimization is not yet available."}}
+            "status":"nominal_schedule_comparison_only",
+            "comparison":"RAFC-V rolling re-optimization on vs off using identical calibration seeds",
+            "commitment_delta_mw":(rolling_result.get("accepted_commitment_mw",0.0)
+                -fixed_rafc.get("accepted_commitment_mw",0.0)),
+            "rolling":rolling_evidence,"fixed_horizon":fixed_evidence,
+            "heldout_effect":"not_estimated; the current held-out scenario pass model does not execute controller actions in closed loop."}}
     output={"schema_version":"1.0.0","experiment_id":f"{config['scenario_id']}-four-controller-comparison",
         "scenario_id":config["scenario_id"],"calibration_seed_start":calibration_seed,
         "calibration_sample_count":calibration_scenarios,"heldout_seed_start":test_seed,
