@@ -1,1 +1,64 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"FlexProof scenario","type":"object","required":["schema_version","scenario_id","random_seed","facility","battery","grid_event","recovery"],"properties":{"schema_version":{"const":"1.0.0"},"scenario_id":{"type":"string","minLength":1},"random_seed":{"type":"integer"},"facility":{"type":"object"},"battery":{"type":"object"},"workloads":{"type":"object"},"grid_event":{"type":"object"},"recovery":{"type":"object"},"controller":{"type":"string"},"reliability_target":{"type":"number","minimum":0,"maximum":1}},"additionalProperties":true}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FlexProof scenario",
+  "type": "object",
+  "required": ["schema_version", "scenario_id", "random_seed", "facility", "battery", "grid_event", "recovery"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "random_seed": {"type": "integer"},
+    "facility": {
+      "type": "object",
+      "required": ["critical_inference_mw", "fixed_auxiliary_mw", "deferrable_compute_mw"],
+      "properties": {
+        "critical_inference_mw": {"type": "number", "minimum": 0},
+        "fixed_auxiliary_mw": {"type": "number", "minimum": 0},
+        "deferrable_compute_mw": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "battery": {
+      "type": "object",
+      "required": ["capacity_mwh", "initial_soc", "min_soc", "max_soc", "max_discharge_mw", "max_charge_mw", "charge_efficiency", "discharge_efficiency"],
+      "properties": {
+        "capacity_mwh": {"type": "number", "exclusiveMinimum": 0},
+        "initial_soc": {"type": "number", "minimum": 0, "maximum": 1},
+        "min_soc": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_soc": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_discharge_mw": {"type": "number", "minimum": 0},
+        "max_charge_mw": {"type": "number", "minimum": 0},
+        "charge_efficiency": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "discharge_efficiency": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+      },
+      "additionalProperties": true
+    },
+    "workloads": {"type": "object"},
+    "grid_event": {
+      "type": "object",
+      "required": ["start_minute", "requested_reduction_mw", "duration_minutes", "interval_minutes"],
+      "properties": {
+        "start_minute": {"type": "integer", "minimum": 0},
+        "requested_reduction_mw": {"type": "number", "minimum": 0},
+        "duration_minutes": {"type": "integer", "exclusiveMinimum": 0},
+        "interval_minutes": {"type": "integer", "exclusiveMinimum": 0},
+        "target_complete_event_success_probability": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": true
+    },
+    "recovery": {
+      "type": "object",
+      "required": ["horizon_minutes", "interval_minutes", "nominal_base_demand_mw", "grid_import_ceiling_mw", "target_soc"],
+      "properties": {
+        "horizon_minutes": {"type": "integer", "exclusiveMinimum": 0},
+        "interval_minutes": {"type": "integer", "exclusiveMinimum": 0},
+        "nominal_base_demand_mw": {"type": "number", "minimum": 0},
+        "grid_import_ceiling_mw": {"type": "number", "minimum": 0},
+        "target_soc": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": true
+    },
+    "controller": {"type": "string"},
+    "reliability_target": {"type": "number", "minimum": 0, "maximum": 1}
+  },
+  "additionalProperties": true
+}

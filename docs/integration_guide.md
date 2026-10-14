@@ -8,4 +8,15 @@ Recovery planning is available through `optimization.recovery.plan_recovery(conf
 
 The first integrated RAFC-V controller is `optimization.rafc_v.run_rafc_v(config, calibration_scenarios=1000, calibration_seed=100000, commitment_step_mw=0.1)`. It performs calibration, filters candidates using recovery constraints, solves an event schedule, and verifies nominal recovery. Its reliability estimate and lower confidence bound are calibration evidence only. It returns zero commitment with status `unconfirmed` when the supplied calibration evidence cannot support the target.
 
-The later application API will be flexproof.engine.run_scenario(config, controller=...) and evaluate_commitment(config), independent of FastAPI and database internals.
+The stable Member 2 interface is now available and independent of FastAPI and database internals:
+
+```python
+from flexproof.engine import evaluate_commitment, run_scenario
+
+assessment = evaluate_commitment("configs/fp001.yaml", n_scenarios=1000, seed=20261014)
+result = run_scenario("configs/fp001.yaml", controller="rafc_v")
+```
+
+`run_scenario` accepts a YAML/JSON path, mapping, or `ScenarioConfig`, and supports `nominal`, `rule_based`, `deterministic_mpc`, `risk_aware_mpc`, and `rafc_v`. It returns a schema-validated JSON-compatible result and includes a RecoveryGuard plan when event telemetry supports recovery planning. Invalid inputs return status `invalid_input`. `evaluate_commitment` returns calibration evidence and is not a held-out evaluation.
+
+See `contracts/examples/fp001_scenario.json` and `contracts/examples/fp001_nominal_result.json` for fixtures generated through the public API.
