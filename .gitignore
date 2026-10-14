@@ -10,6 +10,11 @@ results/fp001-cal1000-test1000/*
 !results/fp001-cal1000-test1000/four_controller_comparison.json
 !results/fp001-cal1000-test1000/four_controller_comparison.csv
 !results/fp001-cal1000-test1000/controller_comparison.png
+!results/fp001-cal1000-test5000/
+results/fp001-cal1000-test5000/*
+!results/fp001-cal1000-test5000/four_controller_comparison.json
+!results/fp001-cal1000-test5000/four_controller_comparison.csv
+!results/fp001-cal1000-test5000/controller_comparison.png
 data/*
 !data/.gitkeep
 *.egg-info/

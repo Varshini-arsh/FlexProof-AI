@@ -167,13 +167,36 @@ def compare_controllers(config: dict[str, Any], *, calibration_scenarios: int = 
             for second in valid_names[i+1:]:
                 paired_tests[metric][f"{first}_vs_{second}"]=exact_mcnemar(
                     heldout_outcomes[first][metric],heldout_outcomes[second][metric])
+    by_name={row["controller"]:row for row in summaries}
+    ablations={
+        "reliability_calibration_disabled":{
+            "comparison":"deterministic_mpc_vs_risk_aware_mpc",
+            "interpretation":"The deterministic controller attempts the full request; risk-aware MPC calibrates the commitment.",
+            "commitment_delta_mw":(by_name["risk_aware_mpc"].get("accepted_commitment_mw")-
+                by_name["deterministic_mpc"].get("accepted_commitment_mw")
+                if by_name["risk_aware_mpc"].get("accepted_commitment_mw") is not None
+                and by_name["deterministic_mpc"].get("accepted_commitment_mw") is not None else None),
+            "paired_event_and_recovery_test":paired_tests["event_and_recovery"].get(
+                "deterministic_mpc_vs_risk_aware_mpc")},
+        "recovery_aware_commitment_disabled":{
+            "comparison":"risk_aware_mpc_vs_rafc_v",
+            "interpretation":"Both use reliability calibration; RAFC-V additionally screens commitment for recovery feasibility.",
+            "commitment_delta_mw":(by_name["rafc_v"].get("accepted_commitment_mw")-
+                by_name["risk_aware_mpc"].get("accepted_commitment_mw")
+                if by_name["rafc_v"].get("accepted_commitment_mw") is not None
+                and by_name["risk_aware_mpc"].get("accepted_commitment_mw") is not None else None),
+            "paired_event_and_recovery_test":paired_tests["event_and_recovery"].get(
+                "risk_aware_mpc_vs_rafc_v")},
+        "rolling_reoptimization_disabled":{
+            "status":"not_implemented",
+            "reason":"Current controllers use a fixed event schedule; rolling event re-optimization is not yet available."}}
     output={"schema_version":"1.0.0","experiment_id":f"{config['scenario_id']}-four-controller-comparison",
         "scenario_id":config["scenario_id"],"calibration_seed_start":calibration_seed,
         "calibration_sample_count":calibration_scenarios,"heldout_seed_start":test_seed,
         "heldout_sample_count":test_scenarios,"confidence_level":confidence,
         "shared_test_scenarios":True,"assumptions":a.__dict__ if hasattr(a,"__dict__") else {
             key:getattr(a,key) for key in a.__dataclass_fields__},
-        "results":summaries,"paired_tests":paired_tests,
+        "results":summaries,"paired_tests":paired_tests,"ablations":ablations,
         "computational_failure_rate":(sum(row["computational_failure"] for row in summaries)/len(summaries)
             if summaries else 1.0),
         "evidence_complete":bool(summaries) and all(row["evidence_complete"] for row in summaries),
