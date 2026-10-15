@@ -1,4 +1,8 @@
 
+/* =========================================
+   FLEXPROOF AI — GLOBAL APP LAYOUT
+   ========================================= */
+
 #root {
   min-height: 100vh;
 }
@@ -7,6 +11,10 @@
   display: flex;
   min-height: 100vh;
 }
+
+/* =========================================
+   SIDEBAR
+   ========================================= */
 
 .sidebar {
   position: fixed;
@@ -85,7 +93,7 @@
 }
 
 .nav-item:hover {
-  color: white;
+  color: #ffffff;
   background: #252f41;
 }
 
@@ -106,6 +114,10 @@
   font-size: 12px;
 }
 
+/* =========================================
+   MAIN CONTENT
+   ========================================= */
+
 .main {
   margin-left: 254px;
   min-width: 0;
@@ -114,7 +126,7 @@
 
 .topbar {
   height: 76px;
-  background: white;
+  background: #ffffff;
   border-bottom: 1px solid #e9edf2;
   display: flex;
   align-items: center;
@@ -195,6 +207,10 @@ h1 {
   margin: 9px 0 0;
 }
 
+/* =========================================
+   BUTTONS AND NOTICES
+   ========================================= */
+
 .primary-button {
   display: inline-flex;
   justify-content: center;
@@ -208,10 +224,16 @@ h1 {
   font-size: 12px;
   padding: 13px 18px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .primary-button:hover {
   background: #e3ae1c;
+}
+
+.primary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .notice {
@@ -228,6 +250,10 @@ h1 {
   margin-bottom: 23px;
 }
 
+/* =========================================
+   OVERVIEW — STAT CARDS
+   ========================================= */
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -237,7 +263,7 @@ h1 {
 
 .stat-card,
 .panel {
-  background: white;
+  background: #ffffff;
   border: 1px solid #e6ebf0;
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(17, 24, 39, 0.025);
@@ -291,6 +317,10 @@ h1 {
   margin: 9px 0 0;
 }
 
+/* =========================================
+   DASHBOARD GRID AND PANELS
+   ========================================= */
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1.65fr 1fr;
@@ -323,6 +353,10 @@ h1 {
   font-size: 11px;
 }
 
+/* =========================================
+   OVERVIEW — CHARTS
+   ========================================= */
+
 .chart-container {
   width: 100%;
   height: 295px;
@@ -334,6 +368,10 @@ h1 {
   margin: 7px 0 0;
   text-align: center;
 }
+
+/* =========================================
+   FACILITY RESOURCE INDICATORS
+   ========================================= */
 
 .resource {
   margin-bottom: 27px;
@@ -392,6 +430,10 @@ h1 {
   margin: 12px 0 0;
 }
 
+/* =========================================
+   PLACEHOLDER PAGES
+   ========================================= */
+
 .placeholder-page {
   margin: 70px auto;
   max-width: 460px;
@@ -418,11 +460,152 @@ h1 {
   line-height: 1.7;
 }
 
+/* =========================================
+   COMMITMENT PLANNER
+   ========================================= */
+
+.planner-page {
+  width: 100%;
+  min-width: 0;
+}
+
+.planner-panel {
+  width: 100%;
+  max-width: none;
+  margin-top: 24px;
+}
+
+.planner-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 22px;
+  margin-top: 20px;
+  align-items: end;
+}
+
+.planner-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #344054;
+}
+
+.planner-form input,
+.planner-form select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 10px 13px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.planner-form input:focus,
+.planner-form select:focus {
+  outline: none;
+  border-color: #e2b024;
+  box-shadow: 0 0 0 3px rgba(242, 191, 53, 0.18);
+}
+
+.planner-form .primary-button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: 44px;
+  padding: 12px 22px;
+}
+
+.planner-panel .notice {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+/* =========================================
+   SIMULATION RESULTS
+   ========================================= */
+
+.planner-results {
+  width: 100%;
+  margin-top: 24px;
+}
+
+.simulation-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.simulation-metric {
+  padding: 20px;
+  border: 1px solid #e3e7ed;
+  border-radius: 12px;
+  background: #fafbfc;
+}
+
+.simulation-metric span {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #667085;
+}
+
+.simulation-metric strong {
+  display: block;
+  color: #182230;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.simulation-chart {
+  min-width: 0;
+  overflow: hidden;
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid #e3e7ed;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.simulation-chart h3 {
+  margin: 0 0 18px;
+  color: #182230;
+  font-size: 17px;
+}
+
+.simulation-disclaimer {
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-left: 3px solid #d5a728;
+  background: #fffbeb;
+  color: #6b560f;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   MOBILE SIDEBAR CONTROLS
+   ========================================= */
+
 .menu-button,
 .mobile-close,
 .sidebar-overlay {
   display: none;
 }
+
+/* =========================================
+   RESPONSIVE — TABLETS
+   ========================================= */
 
 @media (max-width: 1200px) {
   .stat-grid {
@@ -433,6 +616,16 @@ h1 {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 850px) {
+  .simulation-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================
+   RESPONSIVE — MOBILE
+   ========================================= */
 
 @media (max-width: 760px) {
   .sidebar {
@@ -468,7 +661,7 @@ h1 {
 
   .mobile-close {
     margin-left: auto;
-    color: white;
+    color: #ffffff;
   }
 
   .topbar {
@@ -503,6 +696,24 @@ h1 {
 
   .demo-badge {
     font-size: 9px;
+  }
+}
+
+@media (max-width: 700px) {
+  .planner-form {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .planner-form .primary-button {
+    grid-column: 1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 550px) {
+  .simulation-metrics {
+    grid-template-columns: 1fr;
   }
 }
 
