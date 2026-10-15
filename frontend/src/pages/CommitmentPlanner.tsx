@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "recharts";
 
-type TelemetryPoint = {
+export type TelemetryPoint = {
   step: number;
   start_minute: number;
   end_minute: number;
@@ -20,9 +20,13 @@ type TelemetryPoint = {
   battery_soc_end: number;
   workload_backlog_mwh: number;
   battery_discharge_mw: number;
+  battery_charge_mw?: number;
+  flexible_compute_mw?: number;
+  delivered_reduction_mw?: number;
+  success?: boolean;
 };
 
-type SimulationResult = {
+export type SimulationResult = {
   scenario_id: string;
   run_id: string;
   status: string;
@@ -40,8 +44,14 @@ type SimulationResult = {
     final_battery_soc: number;
     final_workload_backlog_mwh: number;
   };
-  violations: unknown[];
+  violations: Array<{ type?: string; minute?: number; reason?: string }>;
 };
+
+export type ScenarioInput = {
+  scenario_id: string; requested_reduction_mw: number; duration_minutes: number;
+  reliability_target: number; battery_soc_percent: number;
+};
+export type RecordedRun = { request: ScenarioInput; result: SimulationResult };
 
 type SimulationResponse = {
   status: string;
@@ -53,21 +63,24 @@ type SimulationResponse = {
 const formatNumber = (value: number | null | undefined, digits = 2) =>
   value != null && Number.isFinite(value) ? value.toFixed(digits) : "N/A";
 
-export default function CommitmentPlanner() {
-  const [requestedMW, setRequestedMW] = useState(5);
-  const [duration, setDuration] = useState(60);
-  const [reliability, setReliability] = useState(95);
-  const [batterySoC, setBatterySoC] = useState(35);
+export default function CommitmentPlanner({ initialRun, onRun }: {
+  initialRun?: RecordedRun | null; onRun?: (run: RecordedRun | null) => void;
+}) {
+  const [requestedMW, setRequestedMW] = useState(initialRun?.request.requested_reduction_mw ?? 5);
+  const [duration, setDuration] = useState(initialRun?.request.duration_minutes ?? 60);
+  const [reliability, setReliability] = useState((initialRun?.request.reliability_target ?? 0.95) * 100);
+  const [batterySoC, setBatterySoC] = useState(initialRun?.request.battery_soc_percent ?? 35);
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [simulation, setSimulation] = useState<SimulationResult | null>(null);
+  const [simulation, setSimulation] = useState<SimulationResult | null>(initialRun?.result ?? null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setMessage("");
     setSimulation(null);
+    onRun?.(null);
 
     if (requestedMW <= 0 || requestedMW > 20) {
       setMessage("Requested reduction must be greater than 0 and at most 20 MW.");
@@ -104,6 +117,7 @@ export default function CommitmentPlanner() {
       }
 
       setSimulation(data.result);
+      onRun?.({ request: scenario, result: data.result });
       setMessage(data.result.status === "infeasible"
         ? "The nominal dispatch is infeasible. Inspect the returned constraints and partial evidence below."
         : "Nominal simulation executed. Results below are model outputs, not reliability-certified commitments.");

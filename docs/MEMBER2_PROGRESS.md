@@ -16,4 +16,8 @@ Validation:
 - Browser tests click Run Simulation against a real FastAPI process, verify the six cards and three charts, and check infeasible, reserve-SoC, and connection-failure states.
 - Nominal FP-001: twelve intervals, 15 MW import, 5 MW reduction, 20.2632% final SoC, and 3.6 MWh remaining workload. These are deterministic model outputs; reliability and recovery are not evaluated by this nominal endpoint.
 
-The standalone Member 1 branches are preserved. The latest public-engine and RAFC-V modules are available in the separate repository but have not yet been integrated into this branch. Grid Event Monitor, risk-aware API, RecoveryGuard UI, independent verification, evidence exports, PostgreSQL migrations, and raw-benchmark dashboard remain subsequent milestones.
+## Grid Event Monitor — verified
+
+The monitor now uses the latest selected run, retains that run when navigating back to the planner, and displays requested/accepted/delivered reduction, baseline/import charts, twelve interval rows, battery discharge/SoC, flexible computing, backlog, delivery checks, and reported violations. Delivered MW is independently recomputed for display as baseline minus import. Empty evidence and missing measurements are explicit. Browser regression tests validate the table against the actual API response and preserve planner results across navigation. Frontend lint/build and all four browser tests passed after this milestone; the screenshots were visually inspected.
+
+The standalone Member 1 branches are preserved. The latest public-engine and RAFC-V modules are available in the separate repository but have not yet been integrated into this branch. Risk-aware API, RecoveryGuard UI, independent verification, evidence exports, PostgreSQL migrations, and raw-benchmark dashboard remain subsequent milestones.

@@ -24,6 +24,14 @@ test("React runs FP-001 and renders actual API telemetry", async ({ page }) => {
   await expect(page.locator(".simulation-chart svg.recharts-surface")).toHaveCount(3);
   expect(errors).toEqual([]);
   await page.screenshot({ path: test.info().outputPath("fp001-nominal.png"), fullPage: true });
+  await page.getByRole("button", { name: "Grid Event Monitor", exact: true }).click();
+  await expect(page.getByTestId("event-interval-row")).toHaveCount(12);
+  const first = page.getByTestId("event-interval-row").first().locator("td");
+  await expect(first.nth(2)).toHaveText(result.telemetry.event_time_series[0].grid_import_mw.toFixed(3));
+  await expect(first.nth(3)).toHaveText((result.telemetry.event_time_series[0].baseline_grid_import_mw - result.telemetry.event_time_series[0].grid_import_mw).toFixed(3));
+  await page.screenshot({ path: test.info().outputPath("fp001-monitor.png"), fullPage: true });
+  await page.getByRole("button", { name: "Commitment Planner", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Nominal Simulation Results" })).toBeVisible();
 });
 
 test("infeasible request explains the API rejection", async ({ page }) => {

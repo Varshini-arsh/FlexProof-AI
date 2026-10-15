@@ -28,6 +28,8 @@ import {
 } from "recharts";
 
 import CommitmentPlanner from "./pages/CommitmentPlanner";
+import type { RecordedRun } from "./pages/CommitmentPlanner";
+import GridEventMonitor from "./pages/GridEventMonitor";
 import "./App.css";
 
 // Illustrative FP-001 data, not actual simulation results.
@@ -53,6 +55,7 @@ const navigation = [
 function App() {
   const [activePage, setActivePage] = useState("Overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [lastRun, setLastRun] = useState<RecordedRun | null>(null);
 
   return (
     <div className="app">
@@ -359,7 +362,9 @@ function App() {
             </>
           ) : activePage === "Commitment Planner" ? (
             /* Commitment Planner page */
-            <CommitmentPlanner />
+            <CommitmentPlanner initialRun={lastRun} onRun={setLastRun} />
+          ) : activePage === "Grid Event Monitor" ? (
+            <GridEventMonitor run={lastRun} onPlan={() => setActivePage("Commitment Planner")} />
           ) : (
             /* Future pages */
             <div className="placeholder-page">

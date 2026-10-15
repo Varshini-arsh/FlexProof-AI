@@ -593,6 +593,12 @@ h1 {
   line-height: 1.6;
 }
 
+.telemetry-table { overflow-x: auto; margin-top: 18px; }
+.telemetry-table table { width: 100%; min-width: 1100px; border-collapse: collapse; font-size: 12px; }
+.telemetry-table th, .telemetry-table td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+.telemetry-table th { color: #475569; background: #f8fafc; }
+.planner-results pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
 /* =========================================
    MOBILE SIDEBAR CONTROLS
    ========================================= */
