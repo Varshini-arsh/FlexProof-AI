@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Activity,
   BatteryCharging,
@@ -15,6 +15,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+
 import {
   CartesianGrid,
   Legend,
@@ -25,8 +26,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
+import CommitmentPlanner from "./pages/CommitmentPlanner";
 import "./App.css";
 
+// Illustrative FP-001 data, not actual simulation results.
 const powerData = [
   { time: "0", baseline: 20, grid: 20 },
   { time: "10", baseline: 20, grid: 17 },
@@ -52,14 +56,22 @@ function App() {
 
   return (
     <div className="app">
-      <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
+      {/* Sidebar */}
+      <aside
+        className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}
+      >
         <div className="brand">
-          <div className="brand-mark"><Zap size={22} /></div>
+          <div className="brand-mark">
+            <Zap size={22} />
+          </div>
+
           <div>
             <strong>FlexProof AI</strong>
             <span>YellowSense Technologies</span>
           </div>
+
           <button
+            type="button"
             className="mobile-close"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close menu"
@@ -74,7 +86,10 @@ function App() {
           {navigation.map(({ name, icon: Icon }) => (
             <button
               key={name}
-              className={`nav-item ${activePage === name ? "active" : ""}`}
+              type="button"
+              className={`nav-item ${
+                activePage === name ? "active" : ""
+              }`}
               onClick={() => {
                 setActivePage(name);
                 setSidebarOpen(false);
@@ -92,17 +107,21 @@ function App() {
         </div>
       </aside>
 
+      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <button
+          type="button"
           className="sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close navigation"
         />
       )}
 
+      {/* Main application */}
       <main className="main">
         <header className="topbar">
           <button
+            type="button"
             className="menu-button"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open navigation"
@@ -110,28 +129,44 @@ function App() {
             <Menu size={22} />
           </button>
 
-          <div className="breadcrumb">Workspace / {activePage}</div>
+          <div className="breadcrumb">
+            Workspace / {activePage}
+          </div>
+
           <div className="topbar-right">
-            <span className="demo-badge">SIMULATED DATA</span>
+            <span className="demo-badge">
+              SIMULATED DATA
+            </span>
+
             <span className="avatar">YS</span>
           </div>
         </header>
 
         <div className="content">
+          {/* Overview */}
           {activePage === "Overview" ? (
             <>
               <div className="page-heading">
                 <div>
-                  <p className="eyebrow">FACILITY MONITORING</p>
+                  <p className="eyebrow">
+                    FACILITY MONITORING
+                  </p>
+
                   <h1>Datacentre Overview</h1>
+
                   <p className="subtitle">
-                    Explore facility demand, energy resources and grid
-                    flexibility using illustrative FP-001 data.
+                    Explore facility demand, energy
+                    resources and grid flexibility
+                    using illustrative FP-001 data.
                   </p>
                 </div>
+
                 <button
+                  type="button"
                   className="primary-button"
-                  onClick={() => setActivePage("Commitment Planner")}
+                  onClick={() =>
+                    setActivePage("Commitment Planner")
+                  }
                 >
                   <Play size={16} />
                   Plan Flexibility
@@ -140,12 +175,15 @@ function App() {
 
               <div className="notice">
                 <ShieldCheck size={18} />
+
                 <span>
-                  Interface preview — values below are illustrative.
-                  No live datacentre or backend connection is active.
+                  Interface preview — values below
+                  are illustrative. No live datacentre
+                  or simulation API connection is active.
                 </span>
               </div>
 
+              {/* Statistics */}
               <div className="stat-grid">
                 <StatCard
                   label="Reference Facility Demand"
@@ -154,6 +192,7 @@ function App() {
                   icon={<Server size={21} />}
                   description="FP-001 assumed baseline"
                 />
+
                 <StatCard
                   label="Battery State of Charge"
                   value="35"
@@ -161,6 +200,7 @@ function App() {
                   icon={<BatteryCharging size={21} />}
                   description="20% protected minimum"
                 />
+
                 <StatCard
                   label="Requested Reduction"
                   value="5.0"
@@ -168,6 +208,7 @@ function App() {
                   icon={<Zap size={21} />}
                   description="60-minute scenario request"
                 />
+
                 <StatCard
                   label="Scenario Status"
                   value="Preview"
@@ -177,38 +218,70 @@ function App() {
                 />
               </div>
 
+              {/* Dashboard panels */}
               <div className="dashboard-grid">
                 <section className="panel chart-panel">
                   <div className="panel-header">
                     <div>
                       <h2>Grid Import Profile</h2>
-                      <p>Illustrative 60-minute curtailment event</p>
+                      <p>
+                        Illustrative 60-minute
+                        curtailment event
+                      </p>
                     </div>
-                    <span className="panel-tag">FP-001 • Example</span>
+
+                    <span className="panel-tag">
+                      FP-001 • Example
+                    </span>
                   </div>
 
                   <div className="chart-container">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer
+                      width="100%"
+                      height="100%"
+                    >
                       <LineChart
                         data={powerData}
-                        margin={{ top: 8, right: 10, left: -15, bottom: 8 }}
+                        margin={{
+                          top: 8,
+                          right: 10,
+                          left: -15,
+                          bottom: 8,
+                        }}
                       >
-                        <CartesianGrid stroke="#e9edf2" strokeDasharray="4 4" />
+                        <CartesianGrid
+                          stroke="#e9edf2"
+                          strokeDasharray="4 4"
+                        />
+
                         <XAxis
                           dataKey="time"
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fill: "#84909f", fontSize: 12 }}
+                          tick={{
+                            fill: "#84909f",
+                            fontSize: 12,
+                          }}
                         />
+
                         <YAxis
                           domain={[10, 22]}
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fill: "#84909f", fontSize: 12 }}
-                          tickFormatter={(v: number) => `${v}`}
+                          tick={{
+                            fill: "#84909f",
+                            fontSize: 12,
+                          }}
                         />
-                        <Tooltip formatter={(v) => [`${v} MW`]} />
+
+                        <Tooltip
+                          formatter={(value) => [
+                            `${value} MW`,
+                          ]}
+                        />
+
                         <Legend />
+
                         <Line
                           type="monotone"
                           dataKey="baseline"
@@ -217,6 +290,7 @@ function App() {
                           strokeWidth={2.5}
                           dot={false}
                         />
+
                         <Line
                           type="monotone"
                           dataKey="grid"
@@ -228,44 +302,86 @@ function App() {
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                  <p className="chart-caption">Time (minutes) · Mock values, not experiment results</p>
+
+                  <p className="chart-caption">
+                    Time (minutes) · Mock values,
+                    not experiment results
+                  </p>
                 </section>
 
+                {/* Resource panel */}
                 <section className="panel resources-panel">
                   <div className="panel-header">
                     <div>
                       <h2>Facility Resources</h2>
-                      <p>Initial FP-001 assumptions</p>
+
+                      <p>
+                        Initial FP-001 assumptions
+                      </p>
                     </div>
                   </div>
 
-                  <ResourceBar name="Critical AI Load" value={12} total={20} />
-                  <ResourceBar name="Fixed Facility Load" value={4} total={20} />
-                  <ResourceBar name="Flexible Compute" value={4} total={20} />
+                  <ResourceBar
+                    name="Critical AI Load"
+                    value={12}
+                    total={20}
+                  />
+
+                  <ResourceBar
+                    name="Fixed Facility Load"
+                    value={4}
+                    total={20}
+                  />
+
+                  <ResourceBar
+                    name="Flexible Compute"
+                    value={4}
+                    total={20}
+                  />
 
                   <div className="battery-block">
                     <div className="battery-heading">
                       <span>Battery Energy</span>
                       <strong>35% SoC</strong>
                     </div>
+
                     <div className="battery-track">
                       <div className="battery-progress" />
                     </div>
-                    <p>10 MWh capacity · 20% protected reserve</p>
+
+                    <p>
+                      10 MWh capacity · 20%
+                      protected reserve
+                    </p>
                   </div>
                 </section>
               </div>
             </>
+          ) : activePage === "Commitment Planner" ? (
+            /* Commitment Planner page */
+            <CommitmentPlanner />
           ) : (
+            /* Future pages */
             <div className="placeholder-page">
-              <div className="placeholder-icon"><Settings2 size={30} /></div>
-              <p className="eyebrow">COMING NEXT</p>
-              <h1>{activePage}</h1>
-              <p>
-                This module will be developed in the next Member 2 milestones.
-                It will use real outputs from the shared FlexProof AI engine.
+              <div className="placeholder-icon">
+                <Settings2 size={30} />
+              </div>
+
+              <p className="eyebrow">
+                COMING NEXT
               </p>
+
+              <h1>{activePage}</h1>
+
+              <p>
+                This module will be developed in
+                the next Member 2 milestones.
+                It will use real outputs from the
+                shared FlexProof AI engine.
+              </p>
+
               <button
+                type="button"
                 className="primary-button"
                 onClick={() => setActivePage("Overview")}
               >
@@ -279,6 +395,7 @@ function App() {
   );
 }
 
+// Reusable statistics card
 function StatCard({
   label,
   value,
@@ -289,23 +406,29 @@ function StatCard({
   label: string;
   value: string;
   unit: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   description: string;
 }) {
   return (
     <div className="stat-card">
       <div className="stat-top">
         <span>{label}</span>
-        <div className="stat-icon">{icon}</div>
+
+        <div className="stat-icon">
+          {icon}
+        </div>
       </div>
+
       <div className="stat-value">
         {value} <small>{unit}</small>
       </div>
+
       <p>{description}</p>
     </div>
   );
 }
 
+// Reusable facility resource progress bar
 function ResourceBar({
   name,
   value,
@@ -321,10 +444,13 @@ function ResourceBar({
         <span>{name}</span>
         <strong>{value} MW</strong>
       </div>
+
       <div className="resource-track">
         <div
           className="resource-progress"
-          style={{ width: `${(value / total) * 100}%` }}
+          style={{
+            width: `${(value / total) * 100}%`,
+          }}
         />
       </div>
     </div>

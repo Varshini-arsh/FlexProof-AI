@@ -1,12 +1,17 @@
+# Python
 .venv/
 __pycache__/
-*.py[cod]
-.pytest_cache/
-.hypothesis/
-results/*
-!results/.gitkeep
-data/*
-!data/.gitkeep
-*.egg-info/
+*.pyc
+
+# Frontend
+node_modules/
 dist/
-build/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Python tools
+.pytest_cache/
+.ruff_cache/
