@@ -104,5 +104,3 @@ def run_report(run_id: str) -> StreamingResponse:
     filename = f"flexproof-{record['scenario_id']}-{run_id[:24]}.pdf"
     return StreamingResponse(BytesIO(pdf), media_type="application/pdf",
                              headers={"Content-Disposition": f'attachment; filename="{filename}"'})
-
-\n

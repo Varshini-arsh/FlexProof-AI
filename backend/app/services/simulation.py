@@ -44,5 +44,3 @@ def execute_scenario(request: ScenarioRequest) -> tuple[dict[str, Any], dict[str
     result["independent_verification"] = verification
     save_run(request.model_dump(), config, result, verification)
     return result, verification
-
-\n

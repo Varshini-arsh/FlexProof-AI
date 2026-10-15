@@ -67,5 +67,3 @@ def test_independent_verifier_detects_tampered_grid_measurement():
     verification = verify_result(config, result)
     assert verification["status"] == "failed"
     assert "event_step_0_power_balance" in verification["failed_checks"]
-
-\n

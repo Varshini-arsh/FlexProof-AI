@@ -185,9 +185,8 @@ function App() {
                 <ShieldCheck size={18} />
 
                 <span>
-                  Interface preview — values below
-                  are illustrative. No live datacentre
-                  or simulation API connection is active.
+                  Overview charts below are illustrative. The Commitment Planner runs
+                  live simulations through the connected FlexProof engine API.
                 </span>
               </div>
 

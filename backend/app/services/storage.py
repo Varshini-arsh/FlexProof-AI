@@ -77,5 +77,3 @@ def get_run(run_id: str) -> dict[str, Any] | None:
     for field in ("request_json", "config_json", "result_json", "verification_json"):
         value[field.removesuffix("_json")] = json.loads(value.pop(field))
     return value
-
-\n

@@ -146,5 +146,3 @@ def verify_result(config: dict[str, Any], result: dict[str, Any]) -> dict[str, A
             "check_count": len(checks), "failed_check_count": len(failed),
             "failed_checks": failed, "checks": checks,
             "method": "Recompute power balance, AC-side delivery, battery power and SoC transitions, event interval count, recovery backlog and SoC transitions, shared-import ceiling, and final recovery targets from returned telemetry."}
-
-\n

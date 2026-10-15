@@ -33,5 +33,3 @@ class ScenarioValidationResponse(BaseModel):
     valid: bool
     scenario: dict
     warnings: list[str]
-
-\n
