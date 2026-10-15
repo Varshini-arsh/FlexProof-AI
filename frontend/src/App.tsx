@@ -30,6 +30,7 @@ import {
 import CommitmentPlanner from "./pages/CommitmentPlanner";
 import type { RecordedRun } from "./pages/CommitmentPlanner";
 import GridEventMonitor from "./pages/GridEventMonitor";
+import RecoveryGuard from "./pages/RecoveryGuard";
 import "./App.css";
 
 // Illustrative FP-001 data, not actual simulation results.
@@ -365,6 +366,8 @@ function App() {
             <CommitmentPlanner initialRun={lastRun} onRun={setLastRun} />
           ) : activePage === "Grid Event Monitor" ? (
             <GridEventMonitor run={lastRun} onPlan={() => setActivePage("Commitment Planner")} />
+          ) : activePage === "RecoveryGuard" ? (
+            <RecoveryGuard run={lastRun} onPlan={() => setActivePage("Commitment Planner")} />
           ) : (
             /* Future pages */
             <div className="placeholder-page">

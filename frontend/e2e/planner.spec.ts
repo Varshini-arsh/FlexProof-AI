@@ -70,6 +70,11 @@ test("RAFC-V execution shows calibration evidence and actual monitored intervals
   await expect(page.getByText(/Held-out validation is unavailable for this run/)).toBeVisible();
   await page.getByRole("button", { name: "Grid Event Monitor", exact: true }).click();
   await expect(page.getByTestId("event-interval-row")).toHaveCount(result.telemetry.event_time_series.length);
+  await page.getByRole("button", { name: "RecoveryGuard", exact: true }).click();
+  await expect(page.getByTestId("recovery-interval-row")).toHaveCount(48);
+  await expect(page.locator(".simulation-metric").filter({ hasText: "SoC target" })).toContainText("Met");
+  await expect(page.locator(".simulation-metric").filter({ hasText: "Work deadline" })).toContainText("Cleared");
+  await page.screenshot({ path: test.info().outputPath("rafc-recovery.png"), fullPage: true });
 });
 
 test("insufficient calibration is displayed as unconfirmed", async ({ page }) => {
@@ -79,4 +84,13 @@ test("insufficient calibration is displayed as unconfirmed", async ({ page }) =>
   await expect(page.getByRole("heading", { name: "Recovery-aware commitment assessment" })).toBeVisible();
   await expect(page.getByText("unconfirmed", { exact: true })).toBeVisible();
   await expect(page.getByText(/Held-out validation: unavailable/)).toBeVisible();
+});
+
+test("event delivery does not mask recovery infeasibility", async ({ page }) => {
+  await page.getByLabel("Recovery grid ceiling (MW)").fill("17");
+  await page.getByRole("button", { name: "Run Simulation", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Nominal Simulation Results" })).toBeVisible();
+  await page.getByRole("button", { name: "RecoveryGuard", exact: true }).click();
+  await expect(page.getByText(/^Recovery infeasible:/)).toBeVisible();
+  await expect(page.getByTestId("recovery-interval-row")).toHaveCount(0);
 });

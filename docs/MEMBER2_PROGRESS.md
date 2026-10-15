@@ -26,4 +26,10 @@ Imported the unchanged Member 1 research snapshot at `b5712c2` onto this Member 
 
 Validation: **93 Python tests passed**. Frontend lint/build passed. **Six browser tests passed**, including actual RAFC-V API execution and insufficient calibration shown as unconfirmed. A controller-select accessible-label defect found by the browser test was corrected before passing. The JavaScript bundle remains about 615 kB minified.
 
-RecoveryGuard UI, independent verification, evidence exports, PostgreSQL migrations, and the raw-benchmark dashboard remain subsequent milestones. The source Member 1 branches have not been modified.
+## RecoveryGuard — verified
+
+All supported controllers now execute through `flexproof.engine.run_scenario`, which returns the existing joint RecoveryGuard plan. The UI displays the recovery timeline, battery charging, restored compute, shared import ceiling, SoC/backlog, interval evidence, target achievement, violations, and failure explanation. It warns when a recovery plan is conditional on an unsuccessful event. The FP-001 feasible case returned 48 intervals, final SoC at least 35%, and cleared backlog; a nominal event with only a 17 MW recovery ceiling correctly returned infeasible recovery despite successful event delivery.
+
+Validation: **95 Python tests passed** in both the previously available environment and the new dedicated `D:\FlexProof-AI-Member2\.venv` (Python 3.12.10). `pip check` found no broken requirements. **Seven browser tests passed**, frontend lint/build passed, and the RecoveryGuard screenshot was visually inspected. Repeated-run tests compare deterministic physical telemetry while excluding measured solver wall-clock time.
+
+Independent verification, evidence exports, PostgreSQL migrations, and the raw-benchmark dashboard remain subsequent milestones. The 5,000-scenario raw reproduction is running separately; no reproduced benchmark claim is made until its outputs are checked. The source Member 1 branches have not been modified.

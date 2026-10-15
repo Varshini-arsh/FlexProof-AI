@@ -50,6 +50,25 @@ export type SimulationResult = {
     final_workload_backlog_mwh?: number;
   };
   violations: Array<{ type?: string; minute?: number; reason?: string }>;
+  recovery?: RecoveryResult;
+};
+
+export type RecoveryPoint = {
+  step: number; start_minute: number; end_minute: number; grid_import_mw: number;
+  base_demand_mw: number; workload_recovery_mw: number; battery_charge_mw: number;
+  battery_soc_start: number; battery_soc_end: number;
+  workload_backlog_start_mwh: number; workload_backlog_end_mwh: number;
+};
+export type RecoveryResult = {
+  status: string; controller_version?: string; infeasibility_reason?: string | null;
+  telemetry: { recovery_time_series: RecoveryPoint[]; initial_backlog_mwh?: number; initial_battery_soc?: number;
+    final_battery_soc?: number; final_workload_backlog_mwh?: number; grid_import_ceiling_mw?: number };
+  violations: Array<{type?: string; reason?: string}>;
+};
+export type ScenarioConfiguration = {
+  recovery: { horizon_minutes: number; interval_minutes: number; nominal_base_demand_mw: number;
+    grid_import_ceiling_mw: number; target_soc: number; target_minute: number; clear_deferred_work_by_minute: number };
+  [key: string]: unknown;
 };
 
 export type ScenarioInput = {
@@ -58,9 +77,10 @@ export type ScenarioInput = {
   controller: string; random_seed: number; calibration_scenarios: number;
   commitment_step_mw: number; recovery_grid_ceiling_mw: number;
 };
-export type RecordedRun = { request: ScenarioInput; result: SimulationResult };
+export type RecordedRun = { request: ScenarioInput; config: ScenarioConfiguration; result: SimulationResult };
 
 type SimulationResponse = {
+  scenario: ScenarioConfiguration;
   status: string;
   simulation_type: string;
   reliability_certified: boolean;
@@ -142,7 +162,7 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
       }
 
       setSimulation(data.result);
-      onRun?.({ request: scenario, result: data.result });
+      onRun?.({ request: scenario, config: data.scenario, result: data.result });
       setMessage(data.result.status === "solver_error" ? "The optimizer failed. No fallback schedule was used." : data.result.status === "infeasible"
         ? "The nominal dispatch is infeasible. Inspect the returned constraints and partial evidence below."
         : data.result.accepted_commitment_mw === 0 ? "No positive commitment was accepted. Review the calibration evidence and explanation."

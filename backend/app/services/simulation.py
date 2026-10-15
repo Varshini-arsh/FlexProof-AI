@@ -6,7 +6,7 @@ import jsonschema
 from evaluation.metrics import wilson_interval
 from flexproof.engine import evaluate_commitment, load_scenario, run_scenario
 
-from simulator.engine import load_config, run_nominal_event
+from simulator.engine import load_config
 
 CONFIG_PATH = Path(__file__).resolve().parents[3] / "configs" / "fp001.yaml"
 ENGINE_SOURCE_REVISION = "b5712c2d5af49d70627225ae9f1a5127fb84976a"
@@ -34,13 +34,10 @@ def build_config(request: dict[str, Any]) -> dict[str, Any]:
 
 def execute_simulation(request: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     config = build_config(request)
-    if request["controller"] == "nominal":
-        result = run_nominal_event(config)
-    else:
-        result = run_scenario(config, controller=request["controller"],
-                              calibration_scenarios=request["calibration_scenarios"],
-                              calibration_seed=request["random_seed"],
-                              commitment_step_mw=request["commitment_step_mw"])
+    result = run_scenario(config, controller=request["controller"],
+                          calibration_scenarios=request["calibration_scenarios"],
+                          calibration_seed=request["random_seed"],
+                          commitment_step_mw=request["commitment_step_mw"])
     if result["status"] == "invalid_input":
         raise ValueError(result["infeasibility_reason"])
     return config, result

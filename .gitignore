@@ -16,6 +16,7 @@ dist/
 .pytest_cache/
 .ruff_cache/
 .hypothesis/
+.cache/
 *.egg-info/
 *.sqlite3
 frontend/test-results/
