@@ -20,3 +20,7 @@ dist/
 *.sqlite3
 frontend/test-results/
 frontend/playwright-report/
+results/*
+!results/.gitkeep
+data/*
+!data/.gitkeep

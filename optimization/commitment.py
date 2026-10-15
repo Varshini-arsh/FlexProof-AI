@@ -18,7 +18,7 @@ def wilson_lower(successes: int, trials: int, *, alpha: float = 0.05) -> float:
 
 
 def _scenario_passes(config: dict[str, Any], commitment_mw: float, disturbance,
-                     assumptions: UncertaintyAssumptions) -> bool:
+                     assumptions: UncertaintyAssumptions, *, recovery_aware: bool = False) -> bool:
     facility=config["facility"]
     battery=config["battery"]
     event=config["grid_event"]
@@ -44,19 +44,61 @@ def _scenario_passes(config: dict[str, Any], commitment_mw: float, disturbance,
     # probability every interval delivers the commitment and preserves reserve.
     if delivered+1e-9 < commitment_mw:
         return False
-    dc_used=discharge/duration_h/float(battery["discharge_efficiency"])*duration_h
+    dc_used=discharge*duration_h/float(battery["discharge_efficiency"])
     final_soc=usable_soc-dc_used/float(battery["capacity_mwh"])
     if final_soc < float(battery["min_soc"])-1e-9:
         return False
     # The max-deferral boundary must not be exceeded by the event.
     max_deferral=int(config.get("workloads",{}).get("max_deferral_minutes",300))
-    return int(event["duration_minutes"]) <= max_deferral
+    if int(event["duration_minutes"]) > max_deferral:
+        return False
+    if recovery_aware:
+        # RecoveryGuard's LP has only independent task-rate limits and a shared
+        # per-interval headroom constraint. With both tasks available from the
+        # horizon start, cumulative demand-by-deadline checks are necessary and
+        # sufficient for this LP's feasibility.
+        recovery=config.get("recovery")
+        if recovery is None:
+            return False
+        interval=int(recovery["interval_minutes"])
+        horizon=int(recovery["horizon_minutes"])
+        event_end=int(event["start_minute"])+int(event["duration_minutes"])
+        target_minute=int(recovery.get("target_minute",event_end+horizon))
+        clear_minute=int(recovery.get("clear_deferred_work_by_minute",target_minute))
+        if interval<=0 or horizon<=0 or horizon%interval:
+            return False
+        n=horizon//interval
+        target_i=ceil((target_minute-event_end)/interval)
+        clear_i=ceil((clear_minute-event_end)/interval)
+        if target_i<0 or clear_i<0 or target_i>n or clear_i>n:
+            return False
+        recovery_hours=interval/60.0
+        recovery_base=float(recovery["nominal_base_demand_mw"])
+        recovery_headroom=float(recovery["grid_import_ceiling_mw"])-recovery_base
+        if recovery_headroom<0:
+            return False
+        deferred_mwh=compute_reduction*duration_h
+        target_soc=float(recovery["target_soc"])
+        charge_mwh=max(0.0,(target_soc-final_soc)*float(battery["capacity_mwh"])
+                       /float(battery["charge_efficiency"]))
+        work_cap=float(facility["deferrable_compute_mw"])
+        charge_cap=float(battery["max_charge_mw"])
+        work_hours=clear_i*recovery_hours
+        charge_hours=target_i*recovery_hours
+        if deferred_mwh > min(work_cap,recovery_headroom)*work_hours+1e-9:
+            return False
+        if charge_mwh > min(charge_cap,recovery_headroom)*charge_hours+1e-9:
+            return False
+        combined_deadline=max(clear_i,target_i)*recovery_hours
+        if deferred_mwh+charge_mwh > recovery_headroom*combined_deadline+1e-9:
+            return False
+    return True
 
 
 def evaluate_commitment(config: dict[str, Any], commitment_mw: float, *,
                         n_scenarios: int = 1000, seed: int = 100_000,
                         assumptions: UncertaintyAssumptions | None = None,
-                        confidence: float = 0.95) -> dict:
+                        confidence: float = 0.95, recovery_aware: bool = False) -> dict:
     if n_scenarios <= 0:
         raise ValueError("n_scenarios must be positive")
     if not 0 < confidence < 1:
@@ -65,7 +107,8 @@ def evaluate_commitment(config: dict[str, Any], commitment_mw: float, *,
     if not 0 <= commitment_mw <= requested:
         raise ValueError("commitment must be between zero and the grid request")
     a=assumptions or UncertaintyAssumptions()
-    passed=sum(_scenario_passes(config,commitment_mw,generate_uncertainty_scenario(seed+i,a),a)
+    passed=sum(_scenario_passes(config,commitment_mw,generate_uncertainty_scenario(seed+i,a),a,
+                                recovery_aware=recovery_aware)
                for i in range(n_scenarios))
     alpha=1-confidence
     estimate=passed/n_scenarios
@@ -77,14 +120,15 @@ def evaluate_commitment(config: dict[str, Any], commitment_mw: float, *,
     return {"commitment_mw":commitment_mw,"successes":passed,"sample_count":n_scenarios,
             "estimate":estimate,"confidence_level":confidence,
             "wilson_interval":[lower,upper],"lower_confidence_bound":lower,
-            "seed_start":seed,"evidence_split":"calibration_or_heldout_as_caller_declares"}
+            "seed_start":seed,"recovery_aware":recovery_aware,
+            "evidence_split":"calibration_or_heldout_as_caller_declares"}
 
 
 def calibrate_commitment(config: dict[str, Any], *, n_scenarios: int = 1000,
                          seed: int = 100_000, step_mw: float = 0.1,
                          target_reliability: float | None = None,
                          assumptions: UncertaintyAssumptions | None = None,
-                         confidence: float = 0.95) -> dict:
+                         confidence: float = 0.95, recovery_aware: bool = False) -> dict:
     if n_scenarios <= 0:
         raise ValueError("n_scenarios must be positive")
     if not 0 < confidence < 1:
@@ -104,7 +148,7 @@ def calibrate_commitment(config: dict[str, Any], *, n_scenarios: int = 1000,
     trials=[generate_uncertainty_scenario(seed+i,a) for i in range(n_scenarios)]
     evidence=[]
     for candidate in candidates:
-        passed=sum(_scenario_passes(config,candidate,s,a) for s in trials)
+        passed=sum(_scenario_passes(config,candidate,s,a,recovery_aware=recovery_aware) for s in trials)
         lower=wilson_lower(passed,n_scenarios,alpha=alpha)
         evidence.append({"commitment_mw":candidate,"successes":passed,"sample_count":n_scenarios,
                          "estimated_reliability":passed/n_scenarios,
@@ -116,7 +160,8 @@ def calibrate_commitment(config: dict[str, Any], *, n_scenarios: int = 1000,
             "calibration_sample_count":n_scenarios,"seed_start":seed,
             "selected_evidence":accepted,"candidate_evidence":evidence,
             "method":"scenario simulation with Bonferroni-adjusted one-sided Wilson lower bounds",
-            "limitations":["No recovery feasibility in this Phase C calibration.",
+            "recovery_aware":recovery_aware,
+            "limitations":["Recovery feasibility is screened with exact cumulative shared-headroom and task-rate checks for RecoveryGuard's current LP; the selected nominal plan is also optimized by RecoveryGuard.",
                            "Disturbance probabilities are assumed, not empirically measured.",
                            "Critical-power variation is common-mode to baseline-relative event reduction.",
                            "Use separate seeds for calibration and held-out evaluation."]}

@@ -27,6 +27,8 @@ export type TelemetryPoint = {
 };
 
 export type SimulationResult = {
+  controller: string;
+  controller_version: string;
   scenario_id: string;
   run_id: string;
   status: string;
@@ -38,11 +40,14 @@ export type SimulationResult = {
     status: string;
     estimate: number | null;
     target: number | null;
-  };
+    confidence_lower_bound?: number | null;
+    sample_count?: number;
+    evidence_split?: string;
+  } | null;
   telemetry: {
     event_time_series: TelemetryPoint[];
-    final_battery_soc: number;
-    final_workload_backlog_mwh: number;
+    final_battery_soc?: number;
+    final_workload_backlog_mwh?: number;
   };
   violations: Array<{ type?: string; minute?: number; reason?: string }>;
 };
@@ -50,6 +55,8 @@ export type SimulationResult = {
 export type ScenarioInput = {
   scenario_id: string; requested_reduction_mw: number; duration_minutes: number;
   reliability_target: number; battery_soc_percent: number;
+  controller: string; random_seed: number; calibration_scenarios: number;
+  commitment_step_mw: number; recovery_grid_ceiling_mw: number;
 };
 export type RecordedRun = { request: ScenarioInput; result: SimulationResult };
 
@@ -58,6 +65,13 @@ type SimulationResponse = {
   simulation_type: string;
   reliability_certified: boolean;
   result: SimulationResult;
+};
+
+type Assessment = {
+  requested_reduction_mw: number; recommended_commitment_mw: number; reliability_target: number;
+  feasibility_status: string; explanation: string; controller_version: string;
+  calibration: { estimate: number | null; simultaneous_lower_bound: number | null; sample_count: number; wilson_interval: number[] | null };
+  held_out_validation: { status: string; reason: string };
 };
 
 const formatNumber = (value: number | null | undefined, digits = 2) =>
@@ -70,10 +84,27 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
   const [duration, setDuration] = useState(initialRun?.request.duration_minutes ?? 60);
   const [reliability, setReliability] = useState((initialRun?.request.reliability_target ?? 0.95) * 100);
   const [batterySoC, setBatterySoC] = useState(initialRun?.request.battery_soc_percent ?? 35);
+  const [controller, setController] = useState(initialRun?.request.controller ?? "nominal");
+  const [seed, setSeed] = useState(initialRun?.request.random_seed ?? 20261014);
+  const [calibrationScenarios, setCalibrationScenarios] = useState(initialRun?.request.calibration_scenarios ?? 1000);
+  const [recoveryCeiling, setRecoveryCeiling] = useState(initialRun?.request.recovery_grid_ceiling_mw ?? 20);
+  const [assessment, setAssessment] = useState<Assessment | null>(null);
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [simulation, setSimulation] = useState<SimulationResult | null>(initialRun?.result ?? null);
+
+  const requestData = (): ScenarioInput => ({ scenario_id: "FP-001", requested_reduction_mw: requestedMW,
+    duration_minutes: duration, reliability_target: reliability / 100, battery_soc_percent: batterySoC,
+    controller, random_seed: seed, calibration_scenarios: calibrationScenarios, commitment_step_mw: 0.1,
+    recovery_grid_ceiling_mw: recoveryCeiling });
+
+  async function handleAssessment() {
+    setLoading(true); setMessage(""); setAssessment(null);
+    try { setAssessment(await apiRequest<Assessment>("/commitments/evaluate", { method: "POST", body: JSON.stringify(requestData()) })); }
+    catch (error) { setMessage(`Commitment assessment error: ${error instanceof Error ? error.message : "API unavailable"}`); }
+    finally { setLoading(false); }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,13 +128,7 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
       return;
     }
 
-    const scenario = {
-      scenario_id: "FP-001",
-      requested_reduction_mw: requestedMW,
-      duration_minutes: duration,
-      reliability_target: reliability / 100,
-      battery_soc_percent: batterySoC,
-    };
+    const scenario = requestData();
 
     setLoading(true);
 
@@ -118,9 +143,10 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
 
       setSimulation(data.result);
       onRun?.({ request: scenario, result: data.result });
-      setMessage(data.result.status === "infeasible"
+      setMessage(data.result.status === "solver_error" ? "The optimizer failed. No fallback schedule was used." : data.result.status === "infeasible"
         ? "The nominal dispatch is infeasible. Inspect the returned constraints and partial evidence below."
-        : "Nominal simulation executed. Results below are model outputs, not reliability-certified commitments.");
+        : data.result.accepted_commitment_mw === 0 ? "No positive commitment was accepted. Review the calibration evidence and explanation."
+        : "Simulation executed. Results below are model outputs; any reliability statistics describe calibration evidence.");
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -146,7 +172,7 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
       <p className="eyebrow">GRID FLEXIBILITY</p>
       <h1>Flexibility Commitment Planner</h1>
       <p className="subtitle">
-        Configure and execute the nominal FP-001 datacentre simulation.
+        Configure FP-001 and select nominal execution or an existing Member 1 controller.
       </p>
 
       <section className="panel planner-panel">
@@ -158,6 +184,9 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
         </div>
 
         <form onSubmit={handleSubmit} className="planner-form">
+          <label>Controller<select aria-label="Controller" value={controller} onChange={(e) => setController(e.target.value)}>
+            <option value="nominal">Nominal illustration</option><option value="rafc_v">RAFC-V</option><option value="risk_aware_mpc">Risk-aware MPC</option><option value="deterministic_mpc">Deterministic MPC</option><option value="rule_based">Rule based</option>
+          </select></label>
           <label>
             Requested reduction (MW)
             <input
@@ -215,6 +244,10 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
           >
             {loading ? "Running Simulation..." : "Run Simulation"}
           </button>
+          <label>Random seed<input type="number" min="0" step="1" value={seed} onChange={(e) => setSeed(Number(e.target.value))} required /></label>
+          <label>Calibration scenarios<input type="number" min="100" max="5000" step="100" value={calibrationScenarios} onChange={(e) => setCalibrationScenarios(Number(e.target.value))} required /></label>
+          <label>Recovery grid ceiling (MW)<input type="number" min="17" max="30" step="1" value={recoveryCeiling} onChange={(e) => setRecoveryCeiling(Number(e.target.value))} required /></label>
+          <button type="button" className="primary-button" disabled={loading} onClick={() => void handleAssessment()}>Assess Commitment</button>
         </form>
 
         {loading && <p role="status">Running the simulation engine…</p>}
@@ -226,12 +259,20 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
         )}
       </section>
 
+      {assessment && <section className="panel planner-results"><h2>Recovery-aware commitment assessment</h2>
+        <p>Requested {formatNumber(assessment.requested_reduction_mw)} MW · Recommended {formatNumber(assessment.recommended_commitment_mw)} MW · Target {(assessment.reliability_target * 100).toFixed(1)}%</p>
+        <p>Status: <strong>{assessment.feasibility_status}</strong> · {assessment.controller_version}</p><p>{assessment.explanation}</p>
+        <p>Calibration estimate: {formatNumber(assessment.calibration.estimate == null ? null : assessment.calibration.estimate * 100)}% · Simultaneous lower bound: {formatNumber(assessment.calibration.simultaneous_lower_bound == null ? null : assessment.calibration.simultaneous_lower_bound * 100)}% · {assessment.calibration.sample_count} samples.</p>
+        <p>Held-out validation: {assessment.held_out_validation.status}. {assessment.held_out_validation.reason}</p>
+      </section>}
+
       {simulation && (
         <section className="panel planner-results">
           <div className="panel-header">
             <div>
               <p className="eyebrow">FP-001 RESULTS</p>
-              <h2>Nominal Simulation Results</h2>
+              <h2>{simulation.controller === "nominal_illustration" ? "Nominal Simulation Results" : "Simulation Results"}</h2>
+              <p>{simulation.controller} · {simulation.controller_version}</p>
               <p>Run ID: {simulation.run_id}</p>
             </div>
           </div>
@@ -260,7 +301,7 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
               <span>Final Battery SoC</span>
               <strong>
                 {formatNumber(
-                  simulation.telemetry.final_battery_soc * 100
+                  (simulation.telemetry.final_battery_soc ?? NaN) * 100
                 )}
                 %
               </strong>
@@ -285,9 +326,8 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
           {simulation.infeasibility_reason && <div className="notice" role="alert">{simulation.infeasibility_reason}</div>}
 
           <p className="simulation-disclaimer">
-            Reliability evaluation: {simulation.reliability.status}.
-            The selected reliability target is not certified by this
-            nominal simulation. Recovery is not evaluated here.
+            Reliability evaluation: {simulation.reliability?.status ?? "Unavailable"}.
+            {simulation.reliability?.evidence_split === "calibration" ? ` Estimate ${formatNumber((simulation.reliability.estimate ?? NaN) * 100)}%; lower confidence bound ${formatNumber((simulation.reliability.confidence_lower_bound ?? NaN) * 100)}%; ${simulation.reliability.sample_count} calibration scenarios. Held-out validation is unavailable for this run.` : " This deterministic execution does not evaluate the reliability target."}
           </p>
 
           {chartData.length > 0 && (
@@ -351,7 +391,7 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
 
               <div className="simulation-chart">
                 <h3>Remaining Workload Backlog (MWh)</h3>
-                <p>The nominal model releases the event workload cohort at minute zero; remaining work at event end is deferred to recovery.</p>
+                <p>{simulation.controller === "nominal_illustration" ? "The nominal model releases the event workload cohort at minute zero; remaining work at event end is deferred to recovery." : "Backlog follows the selected controller's returned workload telemetry."}</p>
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -373,9 +413,7 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
           )}
 
           <div className="simulation-disclaimer">
-            This result represents one deterministic nominal dispatch.
-            It does not demonstrate a 95% event-success probability,
-            RAFC-V optimization performance, or successful recovery.
+            This result is a simulated execution. Calibration evidence, event delivery, recovery feasibility and operational verification are separate checks; none is utility certification.
           </div>
         </section>
       )}

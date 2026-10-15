@@ -56,3 +56,27 @@ test("API connection failure is visible and run control is re-enabled", async ({
   await expect(page.getByRole("status")).toContainText("Simulation error:");
   await expect(page.getByRole("button", { name: "Run Simulation", exact: true })).toBeEnabled();
 });
+
+test("RAFC-V execution shows calibration evidence and actual monitored intervals", async ({ page }) => {
+  await page.getByLabel("Controller", { exact: true }).selectOption("rafc_v");
+  const responsePromise = page.waitForResponse((response) => response.url().endsWith("/api/scenarios/run") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Run Simulation", exact: true }).click();
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+  const { result } = await response.json();
+  expect(result.controller).toBe("rafc_v");
+  expect(result.reliability.evidence_split).toBe("calibration");
+  await expect(page.getByRole("heading", { name: "Simulation Results", exact: true })).toBeVisible();
+  await expect(page.getByText(/Held-out validation is unavailable for this run/)).toBeVisible();
+  await page.getByRole("button", { name: "Grid Event Monitor", exact: true }).click();
+  await expect(page.getByTestId("event-interval-row")).toHaveCount(result.telemetry.event_time_series.length);
+});
+
+test("insufficient calibration is displayed as unconfirmed", async ({ page }) => {
+  await page.getByLabel("Reliability target").selectOption("99");
+  await page.getByLabel("Calibration scenarios").fill("100");
+  await page.getByRole("button", { name: "Assess Commitment", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Recovery-aware commitment assessment" })).toBeVisible();
+  await expect(page.getByText("unconfirmed", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Held-out validation: unavailable/)).toBeVisible();
+});
