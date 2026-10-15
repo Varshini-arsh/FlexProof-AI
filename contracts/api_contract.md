@@ -19,3 +19,15 @@ Inputs may be a YAML/JSON path, a mapping, or `ScenarioConfig`. The input schema
 See `examples/fp001_scenario.json` and `examples/fp001_nominal_result.json` for valid fixtures. The nominal result fixture is one generated run and does not demonstrate reliability.
 
 The `evaluation.run_closed_loop` files are versioned experiment artifacts (`artifact_type: experiment_result`), not individual `run_scenario` result objects; they therefore do not replace or alter the schema 1.0.0 API contract. Their CSV/JSON values are standard JSON-compatible scalar, list, and mapping values. Member 2 should continue to integrate the per-scenario engine through `flexproof.engine`.
+
+## Full-stack prototype HTTP API
+
+- `GET /api/health` reports API/engine availability.
+- `GET /api/scenarios/fp001` returns the validated default scenario and controller choices.
+- `POST /api/scenarios/validate` accepts the `ScenarioRequest` documented by the OpenAPI schema and returns normalized configuration plus warnings.
+- `POST /api/scenarios/run` calls `flexproof.engine.run_scenario`, persists the schema 1.0.0 result and verification record, then returns `{status, simulation_type, reliability_certified: false, verification, result}`. Inputs select scenario ID, requested MW, duration, target reliability, initial SoC, seed, controller, calibration sample count, and commitment step.
+- `GET /api/runs?limit=25` lists recent saved runs; `GET /api/runs/{run_id}` returns a persisted record.
+- `GET /api/runs/{run_id}/verification` returns arithmetic verification details.
+- `GET /api/runs/{run_id}/report.pdf` returns a generated PDF summary.
+
+The run result retains the engine result fields and adds `engine_run_id`, a unique request `run_id`, creation timestamp, and `independent_verification`. Calibration statistics must not be described as held-out success probability. The independent verifier checks telemetry arithmetic and explicitly sets `certification: false`.

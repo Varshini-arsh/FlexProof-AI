@@ -20,3 +20,5 @@ result = run_scenario("configs/fp001.yaml", controller="rafc_v")
 `run_scenario` accepts a YAML/JSON path, mapping, or `ScenarioConfig`, and supports `nominal`, `rule_based`, `deterministic_mpc`, `risk_aware_mpc`, and `rafc_v`. It returns a schema-validated JSON-compatible result and includes a RecoveryGuard plan when event telemetry supports recovery planning. Invalid inputs return status `invalid_input`. `evaluate_commitment` returns calibration evidence and is not a held-out evaluation.
 
 See `contracts/examples/fp001_scenario.json` and `contracts/examples/fp001_nominal_result.json` for fixtures generated through the public API.
+
+For the React/FastAPI prototype, see `docs/fullstack_poc.md`. Install `.[api,dev]`; start `python -m uvicorn backend.app.main:app --reload`, then run `npm ci && npm run dev` in `frontend`. The API is the adapter boundary: it calls `flexproof.engine.run_scenario`, stores runs in SQLite, checks returned power/energy telemetry independently, and provides run retrieval and PDF export. The verification checks arithmetic consistency, not independent certification.
