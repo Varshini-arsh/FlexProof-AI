@@ -40,6 +40,22 @@ docker compose up --build
 
 The UI is available at `http://localhost:8080` and the API at `http://localhost:8000`. Docker Compose keeps SQLite data in the named `flexproof-data` volume. To stop services, use `docker compose down`; add `-v` only if you intend to delete the persisted prototype database.
 
+Both Compose services use `restart: unless-stopped`; the frontend also has a health check. After Docker Desktop starts, check `docker compose ps` and open `http://localhost:8080`. If the services were explicitly stopped, run `docker compose up -d` from the repository root.
+
+## End-to-end demo checklist
+
+1. Open **Commitment Planner** in the navigation.
+2. Keep the FP-001 values (5 MW requested, 60 minutes, 95% target, 35% initial SoC, seed, and 1,000 calibration scenarios), or change a supported input.
+3. Choose a controller and click **Validate and Run**. RAFC-V uses calibration scenarios; its evidence is shown as calibration evidence and is not held-out validation.
+4. Review the accepted commitment, event chart, SoC/backlog chart, recovery status, and independent arithmetic-check summary.
+5. Open **Run History**, select the saved run, and download its PDF report. Refreshing or reopening the page retrieves the same persisted record through the API.
+
+Useful direct checks are `GET /api/health`, `GET /api/runs`, `GET /api/runs/{run_id}/verification`, and `GET /api/runs/{run_id}/report.pdf`. `http://localhost:8000/docs` exposes the OpenAPI reference.
+
+## Verified Docker run
+
+On 2026-10-15, a fresh RAFC-V request was run through the Docker API after Docker's WSL disk was moved to D:. The API returned a persisted 4.9 MW commitment, 42/42 telemetry checks passed, the run appeared in history, and its PDF endpoint returned HTTP 200. Run ID: `FP001-POSTMOVE-E2E-rolling-796daa922f03-41122c0238`. The 98.5% reliability estimate and 96.77% lower confidence bound use 1,000 calibration scenarios; they are not held-out or certification results.
+
 ## Scope and limits
 
 The API stores local prototype data without user accounts or access control and is intended for local development/demo use. RAFC-V evidence from a run is calibration evidence, not held-out validation. The independent checker uses the same returned telemetry data and arithmetic definitions; it is not a separate simulator or a utility certification process. Forecasting, multi-user permissions, production database operations, and facility integrations are not included.

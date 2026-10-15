@@ -1,30 +1,32 @@
-# Member 1 Development Status
+# FlexProof AI — Member 1 and local full-stack prototype status
 
-## Current branch and working state
+## What is complete
 
-Branch: `feature/simulation-optimization` in `D:\FlexProof-AI`. The source, tests, and documentation in this revision are committed locally; nothing has been pushed.
+The repository contains a standalone, deterministic research engine for FP-001: facility and battery physics, abstract flexible workloads, event dispatch, uncertainty, reliability-calibrated commitment, RAFC-V, RecoveryGuard, benchmark controllers, reproducible evaluation code, and schema-versioned results. The stable import interface is documented in `integration_guide.md`.
 
-## Completed and validated
+The local full-stack proof of concept connects the React frontend to FastAPI, calls the public Python engine, stores runs in SQLite, recomputes telemetry checks, shows saved history, and generates downloadable PDF reports. Docker Compose packages both services and stores SQLite in a named volume.
 
-- FP-001 facility, battery, workload, event, recovery, typed input/output, and Python engine modules.
-- Rule-based and deterministic optimization baselines; scenario-based reliability calibration; RAFC-V; RecoveryGuard.
-- Four-controller analytical held-out evaluation and a corrected closed-loop evaluator for fixed-horizon, rolling risk-aware MPC, and rolling RAFC-V.
-- Closed-loop experiment exports experiment-level JSON and per-scenario CSV. These are not individual schema 1.0.0 API result records; Member 2 should continue to call `flexproof.engine`.
-- Final test suite: 77 passed using `.venv\Scripts\python.exe -m pytest -q`.
+## Verified on 2026-10-15
 
-## Current experiment
+- Branch: `feature/fullstack-poc-integration`; source checkout: `D:\FlexProof-AI`.
+- Python suite: **82 passed** with `.\.venv\Scripts\python.exe -m pytest -q`. One Starlette/httpx deprecation warning is emitted by the installed test-client dependency.
+- Frontend: `npm run lint` passed; `npm run build` passed. The production bundle has a 609 kB minified JavaScript chunk, which Vite flags for future code splitting.
+- Backend and frontend containers reported healthy; backend health, frontend page, and frontend API proxy returned HTTP 200.
+- A fresh Docker API request using RAFC-V completed, selected 4.9 MW, persisted to history, passed 42 of 42 arithmetic verification checks, and generated a 31,748-byte PDF. Run ID: `FP001-POSTMOVE-E2E-rolling-796daa922f03-41122c0238`.
+- Docker's live WSL disk image is at `D:\DockerData\DockerDesktopWSL\disk\docker_data.vhdx`; the former C: image path no longer exists. Compose services now use `restart: unless-stopped` and the frontend has a container health check.
 
-The corrected 100-scenario closed-loop smoke run, independent 5,000-scenario held-out evaluation, and 48-case RecoveryGuard sensitivity sweep are recorded in `RESULTS_AND_LIMITATIONS.md`. The 5,000-run used fresh seeds 400000–404999; both rolling controllers selected 4.9 MW and had identical 97.76% held-out event/recovery success. The sensitivity sweep had 45/48 feasible cases.
+The fresh run reported 98.5% reliability over 1,000 calibration scenarios and a 95% Wilson lower bound of 96.77%. These are simulated calibration statistics. They are not held-out validation, measured facility performance, or utility certification. The API correctly reports `certification: false`.
 
-## Known limitations
+## Research evaluation
 
-- All uncertainty values remain assumed rather than measured.
-- The scenario evaluator uses a constant event-level disturbance with interval-by-interval observation delivery.
-- Rolling risk-aware MPC and RAFC-V use the same dispatch/recovery optimizer. The research distinction is the recovery-aware commitment screen; same commitment yields the same controller actions.
-- The prior unfair fixed-horizon smoke result is withdrawn and must not be cited.
-- Rolling dispatch outperformed the matched-margin fixed schedule on this modeled held-out set, but RAFC-V showed no incremental improvement over rolling risk-aware MPC because both selected the same commitment and produced identical outcomes.
-- This prototype is not field validation or utility certification.
+The corrected 5,000-scenario held-out comparison, calibration split, seed ranges, confidence intervals, paired tests, failure categories, and sensitivity results are documented in `RESULTS_AND_LIMITATIONS.md`. Under those assumptions rolling RAFC-V matched rolling risk-aware MPC; the experiments do not show an incremental benefit for RAFC-V over that fair baseline. The previously unfair fixed-horizon result is withdrawn.
 
-## Verification and Git state
+The raw closed-loop 5,000-scenario CSV/JSON files are not present in this checkout. `results/` experiment outputs are ignored by Git; rerun the documented command to regenerate the files. The checked-in four-controller comparison artifacts are analytical scenario-pass summaries, not a replacement for closed-loop results.
 
-The final full test run passed (`77 passed`). New modules compile and `git diff --check` passes. Generated 5,000-scenario CSV/JSON outputs are 3.4 MB/18.7 MB and remain ignored local artifacts. The remote has not been changed.
+## Scope boundary
+
+This is a working local research proof of concept, not a production deployment. Facility values and disturbance distributions remain assumptions. The prototype has no user accounts, access control, multi-user isolation, production database, facility telemetry integration, or operational security review. It must not be described as facility or utility certification.
+
+## Git state
+
+This working branch is `feature/fullstack-poc-integration`, based on the existing simulation and integration work. Review `git status` before committing or publishing. Do not force-push; generated datasets and local databases are excluded from source control.
