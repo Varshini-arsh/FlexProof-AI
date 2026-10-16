@@ -23,3 +23,7 @@ Runs and interval telemetry are persisted in normalized `scenario_configs`, `sim
 `GET /api/benchmarks/closed-loop` serves `results/benchmark_summary.json` and checks the hashes of full raw files when present. It returns `summary_only_raw_files_unavailable` on a clean clone without local raw artifacts and `integrity_mismatch` if a present file differs. The UI does not substitute sample values when the artifact is unavailable or corrupted.
 
 For Docker Compose, use `docker compose -p flexproof-m2 up --build -d`. It runs PostgreSQL, the FastAPI service (8011), and React through Nginx (8081), with the migration applied before the API starts. The named database volume is retained by ordinary `down`.
+
+## Research controller details
+
+For direct experiment use, `optimization.rafc_v.run_rafc_v` accepts calibration scenario count/seed, commitment step, and optional per-interval observations. It performs scenario calibration and rolling dispatch using the research implementation. Calibration evidence is not held-out evidence. `optimization.recovery.plan_recovery` is the shared-headroom RecoveryGuard implementation; the application calls it through `flexproof.engine.run_scenario` and independently checks its returned telemetry. Do not call a successful nominal run a reliability pass.

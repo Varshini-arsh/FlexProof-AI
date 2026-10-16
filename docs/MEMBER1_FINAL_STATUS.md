@@ -1,9 +1,36 @@
-# Member 1 research engine status at integration checkpoint
+# Member 1 Development Status
 
-Member 2 integrated the Member 1 public Python engine from source revision `b5712c2d5af49d70627225ae9f1a5127fb84976a` into the isolated `feature/fullstack-verification` worktree. The simulator, optimization, baseline, evaluation, configuration, and contract files were checked against that snapshot and retained byte-for-byte. Member 1's branch was not modified.
+## Current branch and working state
 
-The API imports `flexproof.engine` and executes nominal, rule-based, deterministic MPC, risk-aware MPC, and RAFC-V controllers. The paired closed-loop runner writes per-scenario CSV and aggregate JSON, reports Wilson intervals and paired McNemar/bootstrap tests, and supplies a checksummed summary to the benchmark dashboard.
+Branch snapshot: `feature/simulation-optimization` at `b5712c2d5af49d70627225ae9f1a5127fb84976a`. At the time this status was first written it was local-only; the branch is now present on `origin/feature/simulation-optimization`.
 
-The 5,000-scenario outcomes and limitations are recorded in [RESULTS_AND_LIMITATIONS.md](RESULTS_AND_LIMITATIONS.md). They support the tested 4.9 MW commitment under modeled assumptions and these fixed seeds, but are not field validation. Rolling RAFC-V and rolling risk-aware MPC had identical held-out outcomes; no incremental RAFC-V performance advantage was demonstrated.
+## Completed and validated
 
-Remaining research work includes recovery sensitivity and ablations for reliability calibration, recovery-aware planning, and rolling re-optimization; additional seeds; independently sourced uncertainty data; and alternate facility scales and workload deadlines. Those are not part of the reproduced run.
+- FP-001 facility, battery, workload, event, recovery, typed input/output, and Python engine modules.
+- Rule-based and deterministic optimization baselines; scenario-based reliability calibration; RAFC-V; RecoveryGuard.
+- Four-controller analytical held-out evaluation and a corrected closed-loop evaluator for fixed-horizon, rolling risk-aware MPC, and rolling RAFC-V.
+- Closed-loop experiment exports experiment-level JSON and per-scenario CSV. These are not individual schema 1.0.0 API result records; Member 2 should continue to call `flexproof.engine`.
+- Final test suite: 77 passed using `.venv\Scripts\python.exe -m pytest -q`.
+
+## Current experiment
+
+The corrected 100-scenario closed-loop smoke run, independent 5,000-scenario held-out evaluation, and 48-case RecoveryGuard sensitivity sweep are recorded in `RESULTS_AND_LIMITATIONS.md`. The 5,000-run used fresh seeds 400000–404999; both rolling controllers selected 4.9 MW and had identical 97.76% held-out event/recovery success. The sensitivity sweep had 45/48 feasible cases.
+
+## Known limitations
+
+- All uncertainty values remain assumed rather than measured.
+- The scenario evaluator uses a constant event-level disturbance with interval-by-interval observation delivery.
+- Rolling risk-aware MPC and RAFC-V use the same dispatch/recovery optimizer. The research distinction is the recovery-aware commitment screen; same commitment yields the same controller actions.
+- The prior unfair fixed-horizon smoke result is withdrawn and must not be cited.
+- Rolling dispatch outperformed the matched-margin fixed schedule on this modeled held-out set, but RAFC-V showed no incremental improvement over rolling risk-aware MPC because both selected the same commitment and produced identical outcomes.
+- This prototype is not field validation or utility certification.
+
+## Verification and Git state
+
+The final full test run passed (`77 passed`). New modules compile and `git diff --check` passes. Generated 5,000-scenario CSV/JSON outputs are 3.4 MB/18.7 MB and remain ignored local artifacts. At this integration audit, `feature/simulation-optimization` is published at `b5712c2d5af49d70627225ae9f1a5127fb84976a`; the isolated integration worktree uses a separate local branch and has not been pushed.
+
+## Joint integration audit
+
+Member 2’s `feature/fullstack-verification` consumes `flexproof.engine` and the shared Member 1 simulator, optimization, workload, uncertainty, and recovery implementations. The shared research source blobs compared equal between the two feature branch tips before merge. The full application adds a FastAPI adapter, React UI, independent evidence verifier, report exports, and database persistence without replacing the research optimizer.
+
+The separate integration candidate is being validated in `D:\FlexProof-AI-Integration-Audit` on `integration/joint-poc-review`. Member 1’s branch and `main` remain unchanged. See `docs/MEMBER2_PROGRESS.md` and the audit addendum in `docs/RESULTS_AND_LIMITATIONS.md` for the combined test and artifact status.

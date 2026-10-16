@@ -42,7 +42,7 @@ The 1,000 calibration / 5,000 held-out run completed with seeds 100000 and 40000
 
 Validation at this checkpoint: 124 Python tests previously passed before exports; focused export, verifier, and benchmark-integrity tests then passed 11/11; all 8 browser tests passed, including JSON/CSV/PDF downloads and benchmark display. Frontend lint/build passed. PostgreSQL persistence/migrations and Docker Compose remain to be implemented and verified. The Member 1 source branch was not modified.
 
-## PostgreSQL, container deployment, and final validation — verified 2026-10-16
+## PostgreSQL, container deployment, and final validation ï¿½ verified 2026-10-16
 
 Completed normalized PostgreSQL persistence and Alembic migrations for scenario configurations, simulation runs, event/recovery telemetry, verification records, and report metadata. The local developer default remains SQLite. Docker Compose runs PostgreSQL, FastAPI, and the React/Nginx frontend on ports 5433, 8011, and 8081. Health checks report database connectivity; API restart testing confirmed stored runs and telemetry remain available.
 
@@ -51,3 +51,11 @@ The React application now includes run history, independent verification, benchm
 Final validation: **135 Python tests passed** (one Starlette/httpx deprecation warning); **9 Playwright end-to-end tests passed** against Docker; frontend lint/build passed; `docker compose config` passed; Docker health and PostgreSQL restart persistence passed. The Member 1 research source and branch remain unchanged.
 
 The local Docker demonstration is available at `http://localhost:8081`; API health is at `http://localhost:8011/api/health`. No changes have been pushed. The raw 5,000-scenario held-out data remains a local ignored artifact; its checksummed compact summary and comparison plot are tracked. Statistical results and known limitations are recorded in `RESULTS_AND_LIMITATIONS.md`.
+
+## Joint branch integration audit (2026-10-16)
+
+Latest branch tips were fetched. An isolated `integration/joint-poc-review` worktree merged both feature branches locally; neither feature branch, `main`, nor PR #15 was modified. Seven documentation/configuration conflicts were reconciled. Shared research implementation files have matching contents at both feature tips. The combined candidate runs the full-stack adapter through `flexproof.engine` and its existing dispatch/recovery implementation.
+
+Combined validation in the isolated candidate: 135 Python tests passed (one Starlette/httpx warning), `pip check` passed, frontend lint/build passed (known 660 kB chunk warning), SQLite migration reached Alembic head `0001_initial_records`, and 9 Playwright tests passed against separate Docker/PostgreSQL/API/frontend services. Browser coverage included nominal and infeasible events, reserve failure, recovery infeasibility, independent verification, JSON/CSV/PDF downloads, and database-backed run history. The Docker stack used alternate ports 15433/18011/18081 and an ignored local `.env`.
+
+Both locally available closed-loop raw JSON/CSV pairs were retained under ignored candidate folders. The `closed-loop-fp001-reproduced` files match the tracked summary SHA-256 values and all 5,000 CSV seeds/counts match its JSON aggregate. The separate same-seed files from Member 1's original worktree have different provenance/runtime hashes but the same controller success counts. The analytical four-controller set is distinct (held-out seeds 200000-204999). Results and statistical interpretations are separated in `RESULTS_AND_LIMITATIONS.md`.
