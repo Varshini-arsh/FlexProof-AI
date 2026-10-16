@@ -1,0 +1,1084 @@
+{
+  "schema_version": "1.0.0",
+  "artifact_status": "raw_outputs_reproduced_and_cross_checked",
+  "experiment_id": "FP-001-closed-loop-controller-comparison",
+  "scenario_id": "FP-001",
+  "controller_order": [
+    "fixed_horizon",
+    "rolling_risk_aware_mpc",
+    "rolling_rafc_v"
+  ],
+  "protocol": {
+    "calibration_sample_count": 1000,
+    "calibration_seed_start": 100000,
+    "heldout_sample_count": 5000,
+    "heldout_seed_start": 400000,
+    "confidence_level": 0.95,
+    "paired_disturbances": true,
+    "heldout_data_used_for_commitment_selection": false,
+    "commitment_calibration_seed_set_shared": true,
+    "commitment_step_mw": 0.1,
+    "wall_runtime_seconds": 2907.1627578,
+    "internal_evaluation_runtime_seconds": 2900.662992400001,
+    "assumptions": {
+      "initial_soc_error_bound": 0.015,
+      "critical_power_std_mw": 0.1,
+      "critical_power_truncation_mw": 0.3,
+      "urgent_reclaim_probability": 0.1,
+      "urgent_reclaim_mw": 0.4,
+      "battery_derating_probability": 0.05,
+      "battery_derating_fraction": 0.1,
+      "meter_noise_std_mw": 0.02
+    }
+  },
+  "commitment_calibration": {
+    "rolling_rafc_v": {
+      "status": "confirmed",
+      "accepted_commitment_mw": 4.9,
+      "target_reliability": 0.95,
+      "confidence_level": 0.95,
+      "calibration_sample_count": 1000,
+      "seed_start": 100000,
+      "selected_evidence": {
+        "commitment_mw": 4.9,
+        "successes": 984,
+        "sample_count": 1000,
+        "estimated_reliability": 0.984,
+        "simultaneous_lower_bound": 0.966342856047884
+      },
+      "candidate_evidence": [
+        {
+          "commitment_mw": 5.0,
+          "successes": 953,
+          "sample_count": 1000,
+          "estimated_reliability": 0.953,
+          "simultaneous_lower_bound": 0.9276326183542776
+        },
+        {
+          "commitment_mw": 4.9,
+          "successes": 984,
+          "sample_count": 1000,
+          "estimated_reliability": 0.984,
+          "simultaneous_lower_bound": 0.966342856047884
+        },
+        {
+          "commitment_mw": 4.8,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.7,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.6,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.3,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.2,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.1,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.9,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.8,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.7,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.3,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.2,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.0999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.9,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.8,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.6999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.3,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.1999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.0999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.9,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.7999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.6999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.2999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.1999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.0999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.8999999999999995,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.7999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.7000000000000002,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.39999999999999947,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.2999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.1999999999999993,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.09999999999999964,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.0,
+          "successes": 1000,
+          "sample_count": 1000,
+          "estimated_reliability": 1.0,
+          "simultaneous_lower_bound": 0.9905051273799028
+        }
+      ],
+      "method": "scenario simulation with Bonferroni-adjusted one-sided Wilson lower bounds",
+      "recovery_aware": true,
+      "limitations": [
+        "Recovery feasibility is screened with exact cumulative shared-headroom and task-rate checks for RecoveryGuard's current LP; the selected nominal plan is also optimized by RecoveryGuard.",
+        "Disturbance probabilities are assumed, not empirically measured.",
+        "Critical-power variation is common-mode to baseline-relative event reduction.",
+        "Use separate seeds for calibration and held-out evaluation."
+      ]
+    },
+    "rolling_risk_aware_mpc": {
+      "status": "confirmed",
+      "accepted_commitment_mw": 4.9,
+      "target_reliability": 0.95,
+      "confidence_level": 0.95,
+      "calibration_sample_count": 1000,
+      "seed_start": 100000,
+      "selected_evidence": {
+        "commitment_mw": 4.9,
+        "successes": 984,
+        "sample_count": 1000,
+        "estimated_reliability": 0.984,
+        "simultaneous_lower_bound": 0.966342856047884
+      },
+      "candidate_evidence": [
+        {
+          "commitment_mw": 5.0,
+          "successes": 953,
+          "sample_count": 1000,
+          "estimated_reliability": 0.953,
+          "simultaneous_lower_bound": 0.9276326183542776
+        },
+        {
+          "commitment_mw": 4.9,
+          "successes": 984,
+          "sample_count": 1000,
+          "estimated_reliability": 0.984,
+          "simultaneous_lower_bound": 0.966342856047884
+        },
+        {
+          "commitment_mw": 4.8,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.7,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.6,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.3,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.2,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.1,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 4.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.9,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.8,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.7,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.3,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.2,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.0999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 3.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.9,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.8,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.6999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.3,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.1999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.0999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 2.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.9,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.7999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.6999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.4,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.2999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.1999999999999997,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.0999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 1.0,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.8999999999999995,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.7999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.7000000000000002,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.5999999999999996,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.5,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.39999999999999947,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.2999999999999998,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.1999999999999993,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.09999999999999964,
+          "successes": 991,
+          "sample_count": 1000,
+          "estimated_reliability": 0.991,
+          "simultaneous_lower_bound": 0.9760220663356669
+        },
+        {
+          "commitment_mw": 0.0,
+          "successes": 1000,
+          "sample_count": 1000,
+          "estimated_reliability": 1.0,
+          "simultaneous_lower_bound": 0.9905051273799028
+        }
+      ],
+      "method": "scenario simulation with Bonferroni-adjusted one-sided Wilson lower bounds",
+      "recovery_aware": false,
+      "limitations": [
+        "Recovery feasibility is screened with exact cumulative shared-headroom and task-rate checks for RecoveryGuard's current LP; the selected nominal plan is also optimized by RecoveryGuard.",
+        "Disturbance probabilities are assumed, not empirically measured.",
+        "Critical-power variation is common-mode to baseline-relative event reduction.",
+        "Use separate seeds for calibration and held-out evaluation."
+      ]
+    },
+    "heldout_data_used": false,
+    "same_calibration_seed_set": true
+  },
+  "comparison_design": {
+    "fixed_horizon": "RAFC commitment; meter-margin protected nominal schedule; then held-out disturbances",
+    "rolling_risk_aware_mpc": "event-reliability calibration; rolling Pyomo/HiGHS dispatch; RecoveryGuard verification",
+    "rolling_rafc_v": "event and recovery reliability calibration; same rolling dispatch and RecoveryGuard"
+  },
+  "results": [
+    {
+      "controller": "fixed_horizon",
+      "commitment_mw": 4.9,
+      "heldout_count": 5000,
+      "event_successes": 4448,
+      "event_success_probability": 0.8896,
+      "event_wilson_interval": [
+        0.8806125847611544,
+        0.8979892218832569
+      ],
+      "event_and_recovery_successes": 4448,
+      "event_and_recovery_success_probability": 0.8896,
+      "joint_wilson_interval": [
+        0.8806125847611544,
+        0.8979892218832569
+      ],
+      "mean_delivered_mw": 4.9057123267242195,
+      "delivered_observation_count": 5000,
+      "mean_minimum_delivered_mw": 4.9057123267242195,
+      "mean_max_shortfall_mw": 0.03622162795494662,
+      "mean_shortfall_energy_mwh": 0.03622162795494662,
+      "scenarios_with_shortfall": 552,
+      "battery_reserve_violation_scenarios": 0,
+      "battery_reserve_violation_steps": 0,
+      "workload_deadline_miss_scenarios": 0,
+      "workload_deadline_evaluation_unknown_scenarios": 0,
+      "recovery_successes": 5000,
+      "recovery_feasibility_probability": 1.0,
+      "mean_rebound_peak_mw": 18.25235093686784,
+      "rebound_peak_case_count": 5000,
+      "max_rebound_peak_mw": 18.301664816420875,
+      "mean_event_solver_runtime_seconds": null,
+      "event_solver_runtime_case_count": 0,
+      "schedule_setup_solver_runtime_seconds": 0.09669819998089224,
+      "mean_recovery_solver_runtime_seconds": 0.09537771430002176,
+      "solver_failure_scenarios": 0,
+      "failure_categories": {
+        "delivery_shortfall": 552
+      }
+    },
+    {
+      "controller": "rolling_risk_aware_mpc",
+      "commitment_mw": 4.9,
+      "heldout_count": 5000,
+      "event_successes": 4888,
+      "event_success_probability": 0.9776,
+      "event_wilson_interval": [
+        0.9731168231198777,
+        0.9813498679822039
+      ],
+      "event_and_recovery_successes": 4888,
+      "event_and_recovery_success_probability": 0.9776,
+      "joint_wilson_interval": [
+        0.9731168231198777,
+        0.9813498679822039
+      ],
+      "mean_delivered_mw": 4.945630429305525,
+      "delivered_observation_count": 5000,
+      "mean_minimum_delivered_mw": 4.935768619377313,
+      "mean_max_shortfall_mw": 0.009692209289501255,
+      "mean_shortfall_energy_mwh": 0.0008076841074584378,
+      "scenarios_with_shortfall": 112,
+      "battery_reserve_violation_scenarios": 0,
+      "battery_reserve_violation_steps": 0,
+      "workload_deadline_miss_scenarios": 0,
+      "workload_deadline_evaluation_unknown_scenarios": 0,
+      "recovery_successes": 5000,
+      "recovery_feasibility_probability": 1.0,
+      "mean_rebound_peak_mw": 18.263408583012243,
+      "rebound_peak_case_count": 5000,
+      "max_rebound_peak_mw": 18.318129886429464,
+      "mean_event_solver_runtime_seconds": 0.31518852043930673,
+      "event_solver_runtime_case_count": 5000,
+      "schedule_setup_solver_runtime_seconds": null,
+      "mean_recovery_solver_runtime_seconds": 0.09348601285966579,
+      "solver_failure_scenarios": 0,
+      "failure_categories": {
+        "delivery_shortfall": 112
+      }
+    },
+    {
+      "controller": "rolling_rafc_v",
+      "commitment_mw": 4.9,
+      "heldout_count": 5000,
+      "event_successes": 4888,
+      "event_success_probability": 0.9776,
+      "event_wilson_interval": [
+        0.9731168231198777,
+        0.9813498679822039
+      ],
+      "event_and_recovery_successes": 4888,
+      "event_and_recovery_success_probability": 0.9776,
+      "joint_wilson_interval": [
+        0.9731168231198777,
+        0.9813498679822039
+      ],
+      "mean_delivered_mw": 4.945630429305525,
+      "delivered_observation_count": 5000,
+      "mean_minimum_delivered_mw": 4.935768619377313,
+      "mean_max_shortfall_mw": 0.009692209289501255,
+      "mean_shortfall_energy_mwh": 0.0008076841074584378,
+      "scenarios_with_shortfall": 112,
+      "battery_reserve_violation_scenarios": 0,
+      "battery_reserve_violation_steps": 0,
+      "workload_deadline_miss_scenarios": 0,
+      "workload_deadline_evaluation_unknown_scenarios": 0,
+      "recovery_successes": 5000,
+      "recovery_feasibility_probability": 1.0,
+      "mean_rebound_peak_mw": 18.263408583012243,
+      "rebound_peak_case_count": 5000,
+      "max_rebound_peak_mw": 18.318129886429464,
+      "mean_event_solver_runtime_seconds": 0.31518852043930673,
+      "event_solver_runtime_case_count": 5000,
+      "schedule_setup_solver_runtime_seconds": null,
+      "mean_recovery_solver_runtime_seconds": 0.09348601285966579,
+      "solver_failure_scenarios": 0,
+      "failure_categories": {
+        "delivery_shortfall": 112
+      }
+    }
+  ],
+  "paired_tests": {
+    "fixed_horizon_vs_rolling_risk_aware_mpc": {
+      "event_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 440,
+        "discordant_pairs": 440,
+        "p_value": 7.044203657368268e-133,
+        "holm_adjusted_p_value": 2.1132610972104803e-132
+      },
+      "event_recovery_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 440,
+        "discordant_pairs": 440,
+        "p_value": 7.044203657368268e-133,
+        "holm_adjusted_p_value": 2.1132610972104803e-132
+      },
+      "paired_mean_difference_ci_first_minus_second": {
+        "delivered_mean_mw": [
+          -0.043291617996055534,
+          -0.03658749905930155
+        ],
+        "shortfall_energy_mwh": [
+          0.03250054920764002,
+          0.03834842062952705
+        ],
+        "rebound_peak_mw": [
+          -0.011992137949045136,
+          -0.010135041290664474
+        ]
+      }
+    },
+    "fixed_horizon_vs_rolling_rafc_v": {
+      "event_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 440,
+        "discordant_pairs": 440,
+        "p_value": 7.044203657368268e-133,
+        "holm_adjusted_p_value": 2.1132610972104803e-132
+      },
+      "event_recovery_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 440,
+        "discordant_pairs": 440,
+        "p_value": 7.044203657368268e-133,
+        "holm_adjusted_p_value": 2.1132610972104803e-132
+      },
+      "paired_mean_difference_ci_first_minus_second": {
+        "delivered_mean_mw": [
+          -0.04329569749216967,
+          -0.03662897277267671
+        ],
+        "shortfall_energy_mwh": [
+          0.03259168914445407,
+          0.038356500733628424
+        ],
+        "rebound_peak_mw": [
+          -0.011993268003370378,
+          -0.01014652985392658
+        ]
+      }
+    },
+    "rolling_risk_aware_mpc_vs_rolling_rafc_v": {
+      "event_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 0,
+        "discordant_pairs": 0,
+        "p_value": 1.0,
+        "holm_adjusted_p_value": 1.0
+      },
+      "event_recovery_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 0,
+        "discordant_pairs": 0,
+        "p_value": 1.0,
+        "holm_adjusted_p_value": 1.0
+      },
+      "paired_mean_difference_ci_first_minus_second": {
+        "delivered_mean_mw": [
+          0.0,
+          0.0
+        ],
+        "shortfall_energy_mwh": [
+          0.0,
+          0.0
+        ],
+        "rebound_peak_mw": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "raw_recomputation": {
+    "fixed_horizon": {
+      "event_successes": 4448,
+      "joint_successes": 4448
+    },
+    "rolling_risk_aware_mpc": {
+      "event_successes": 4888,
+      "joint_successes": 4888
+    },
+    "rolling_rafc_v": {
+      "event_successes": 4888,
+      "joint_successes": 4888
+    }
+  },
+  "provenance": {
+    "experiment_code_commit": "a14604a1aca8dc5966f8b2a766b40d2331a1907c",
+    "member1_engine_source_revision": "b5712c2d5af49d70627225ae9f1a5127fb84976a",
+    "configuration_sha256": "d60b89221194155838a62cc1b5dc824cb9dcf6825f41aa14390fd5395c542b99",
+    "closed_loop_source_sha256": "568242911a6970b60aefea44ff064ba553987e984ef8e567012cc56aa65fbf41",
+    "uncertainty_source_sha256": "af4408306d5771331ad5c6804f7a024c4f48dc1ffba0db2e05287a3a962e2514",
+    "raw_json_path": "results/closed-loop-fp001-reproduced/closed_loop_comparison.json",
+    "raw_csv_path": "results/closed-loop-fp001-reproduced/closed_loop_scenarios.csv",
+    "raw_json_sha256": "02d62ec9ddd053d01d51d970c11f2e7f66af7904491c04311215d861909beadc",
+    "raw_csv_sha256": "76559ed9fd1443c7d8ec394bf315da3b7795d239b904ccb07a204978c44db8a4",
+    "raw_outputs_size_bytes": {
+      "json": 19001891,
+      "csv": 3340619
+    },
+    "python": "3.12.10",
+    "packages": {
+      "numpy": "2.5.4",
+      "pandas": "3.0.6",
+      "scipy": "1.18.1",
+      "pyomo": "6.10.1",
+      "highspy": "1.15.1",
+      "statsmodels": "0.15.0",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "limitations": [
+    "Disturbance distributions are modeled assumptions, not measured facility data.",
+    "Each held-out disturbance is constant within one event; it becomes observable to rolling controllers only at its interval.",
+    "Critical-power deviation is common-mode to baseline-relative reduction and is not a critical-service failure model.",
+    "Fixed-horizon schedule is optimized for the same RAFC commitment and 99% meter margin, but does not re-optimize under disturbance observations.",
+    "RecoveryGuard uses the explicit 17 MW modeled recovery base and checks the shared grid ceiling.",
+    "Fixed-horizon optimizer setup time is one pre-test schedule solve; rolling event solver time is per held-out scenario, so these runtime values are not directly paired.",
+    "Reproduction used the same fixed seed ranges as the prior recorded run; it is not a new independent experiment.",
+    "Aggregate controller comparisons do not establish RAFC-V improvement over rolling risk-aware MPC; the two rolling methods selected the same commitment and had identical held-out outcomes here.",
+    "Fixed-horizon event runtime is a one-time nominal schedule setup, while rolling runtime is per scenario; compare these runtime fields with that distinction.",
+    "The tracked summary is checksummed against full raw files retained in the local results directory; the multi-megabyte per-scenario raw files are not included in this compact dashboard summary."
+  ]
+}

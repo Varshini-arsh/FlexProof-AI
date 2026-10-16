@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://flexproof.ai/contracts/evidence.schema.json",
+  "title": "FlexProof AI operational evidence export",
+  "type": "object",
+  "required": ["schema_version", "exported_at_utc", "scenario_id", "run_id", "controller", "controller_version", "input_hash_sha256", "evidence_hash_sha256", "certification", "scenario", "result", "independent_verification", "limitations"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "exported_at_utc": {"type": "string", "format": "date-time"},
+    "scenario_id": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "controller": {"type": "string"},
+    "controller_version": {"type": "string"},
+    "input_hash_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "evidence_hash_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "certification": {"const": false},
+    "scenario": {"type": "object"},
+    "result": {"type": "object"},
+    "independent_verification": {
+      "type": "object",
+      "required": ["status", "verifier_version", "certification", "independent_check", "checks", "limitations"],
+      "properties": {
+        "status": {"enum": ["pass", "fail", "insufficient_evidence"]},
+        "verifier_version": {"type": "string"},
+        "certification": {"const": false},
+        "independent_check": {"const": true},
+        "checks": {"type": "array"},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "report_metadata_recorded": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

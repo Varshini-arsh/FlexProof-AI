@@ -1,12 +1,29 @@
+# Python
 .venv/
 __pycache__/
-*.py[cod]
+*.pyc
+
+# Frontend
+node_modules/
+dist/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Python tools
 .pytest_cache/
+.ruff_cache/
 .hypothesis/
+.cache/
+*.egg-info/
+*.sqlite3
+frontend/test-results/
+frontend/playwright-report/
 results/*
 !results/.gitkeep
+!results/benchmark_summary.json
+!results/closed-loop-controller-comparison.png
 data/*
 !data/.gitkeep
-*.egg-info/
-dist/
-build/
