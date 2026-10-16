@@ -7,6 +7,7 @@ import {
   CircleCheck,
   FileCheck2,
   LayoutDashboard,
+  History,
   Menu,
   Play,
   Server,
@@ -31,6 +32,10 @@ import CommitmentPlanner from "./pages/CommitmentPlanner";
 import type { RecordedRun } from "./pages/CommitmentPlanner";
 import GridEventMonitor from "./pages/GridEventMonitor";
 import RecoveryGuard from "./pages/RecoveryGuard";
+import VerificationPortal from "./pages/VerificationPortal";
+import type { VerificationResult } from "./pages/CommitmentPlanner";
+import Benchmarking from "./pages/Benchmarking";
+import RunHistory from "./pages/RunHistory";
 import "./App.css";
 
 // Illustrative FP-001 data, not actual simulation results.
@@ -49,6 +54,7 @@ const navigation = [
   { name: "Commitment Planner", icon: Settings2 },
   { name: "Grid Event Monitor", icon: Activity },
   { name: "RecoveryGuard", icon: BatteryCharging },
+  { name: "Run History", icon: History },
   { name: "Verification Portal", icon: FileCheck2 },
   { name: "Benchmarking", icon: ChartNoAxesCombined },
 ];
@@ -368,6 +374,13 @@ function App() {
             <GridEventMonitor run={lastRun} onPlan={() => setActivePage("Commitment Planner")} />
           ) : activePage === "RecoveryGuard" ? (
             <RecoveryGuard run={lastRun} onPlan={() => setActivePage("Commitment Planner")} />
+          ) : activePage === "Verification Portal" ? (
+            <VerificationPortal run={lastRun} onPlan={() => setActivePage("Commitment Planner")}
+              onVerified={(verification: VerificationResult) => setLastRun((current) => current ? {...current, verification} : current)} />
+          ) : activePage === "Benchmarking" ? (
+            <Benchmarking />
+          ) : activePage === "Run History" ? (
+            <RunHistory onSelect={(run) => { setLastRun(run); setActivePage("Grid Event Monitor"); }} />
           ) : (
             /* Future pages */
             <div className="placeholder-page">

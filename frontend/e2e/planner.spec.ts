@@ -12,8 +12,10 @@ test("React runs FP-001 and renders actual API telemetry", async ({ page }) => {
   await page.getByRole("button", { name: "Run Simulation", exact: true }).click();
   const response = await responsePromise;
   expect(response.status()).toBe(200);
-  const { result, reliability_certified } = await response.json();
+  const runBody = await response.json();
+  const { result, reliability_certified } = runBody;
   expect(reliability_certified).toBe(false);
+  expect(runBody.independent_verification.status).toBe("pass");
   expect(result.telemetry.event_time_series).toHaveLength(12);
   await expect(page.getByRole("heading", { name: "Nominal Simulation Results" })).toBeVisible();
   const card = (name: string) => page.locator(".simulation-metric").filter({ hasText: name }).locator("strong");
@@ -32,6 +34,22 @@ test("React runs FP-001 and renders actual API telemetry", async ({ page }) => {
   await page.screenshot({ path: test.info().outputPath("fp001-monitor.png"), fullPage: true });
   await page.getByRole("button", { name: "Commitment Planner", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Nominal Simulation Results" })).toBeVisible();
+  await page.getByRole("button", { name: "Verification Portal", exact: true }).click();
+  await expect(page.getByTestId("verification-overall").locator("strong")).toHaveText("pass");
+  const verifyResponse = page.waitForResponse((response) => response.url().endsWith("/api/evidence/verify"));
+  await page.getByRole("button", { name: "Re-verify recorded evidence" }).click();
+  const verificationBody = await (await verifyResponse).json();
+  expect(verificationBody.status).toBe("pass");
+  await expect(page.getByTestId("verification-overall").locator("strong")).toHaveText("pass");
+  const jsonDownloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", {name: "Download JSON evidence"}).click();
+  expect((await jsonDownloadPromise).suggestedFilename()).toMatch(/-evidence\.json$/);
+  const csvDownloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", {name: "Download telemetry CSV"}).click();
+  expect((await csvDownloadPromise).suggestedFilename()).toMatch(/-evidence\.csv$/);
+  const pdfDownloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", {name: "Download verification PDF"}).click();
+  expect((await pdfDownloadPromise).suggestedFilename()).toMatch(/-evidence\.pdf$/);
 });
 
 test("infeasible request explains the API rejection", async ({ page }) => {
@@ -93,4 +111,33 @@ test("event delivery does not mask recovery infeasibility", async ({ page }) => 
   await page.getByRole("button", { name: "RecoveryGuard", exact: true }).click();
   await expect(page.getByText(/^Recovery infeasible:/)).toBeVisible();
   await expect(page.getByTestId("recovery-interval-row")).toHaveCount(0);
+  await page.getByRole("button", { name: "Verification Portal", exact: true }).click();
+  await expect(page.getByTestId("verification-overall").locator("strong")).toHaveText("fail");
+});
+
+test("benchmark page reads the three controllers from the recorded summary API", async ({ page }) => {
+  const responsePromise = page.waitForResponse((response) => response.url().endsWith("/api/benchmarks/closed-loop"));
+  await page.getByRole("button", {name: "Benchmarking", exact: true}).click();
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+  const body = await response.json();
+  expect(body.summary.results).toHaveLength(3);
+  await expect(page.getByRole("heading", {name: "Benchmarking", exact: true})).toBeVisible();
+  await expect(page.getByRole("row", {name: /fixed_horizon/})).toBeVisible();
+  await expect(page.getByRole("row", {name: /rolling_risk_aware_mpc/})).toBeVisible();
+  await expect(page.getByRole("row", {name: /rolling_rafc_v/})).toBeVisible();
+  await expect(page.getByText(/A zero difference does not establish superiority/)).toBeVisible();
+});
+
+test("a persisted run can be reopened from database-backed history", async ({page}) => {
+  const responsePromise = page.waitForResponse((response) => response.url().endsWith("/api/scenarios/run"));
+  await page.getByRole("button", {name: "Run Simulation", exact: true}).click();
+  const body = await (await responsePromise).json();
+  expect(body.storage_status).toBe("persisted");
+  await page.getByRole("button", {name: "Run History", exact: true}).click();
+  const row = page.getByRole("row", {name: new RegExp(body.result.run_id)});
+  await expect(row).toBeVisible();
+  await row.getByRole("button", {name: "Open run"}).click();
+  await expect(page.getByRole("button", {name: "Grid Event Monitor", exact: true})).toHaveClass(/active/);
+  await expect(page.getByTestId("event-interval-row")).toHaveCount(12);
 });

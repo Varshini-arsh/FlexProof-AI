@@ -29,7 +29,7 @@ def test_inputs_propagate_and_nominal_execution_is_deterministic():
     request = {**REQUEST, "reliability_target": 0.99, "random_seed": 9182, "scenario_id": "CUSTOM"}
     first = client.post("/api/scenarios/run", json=request).json()["result"]
     second = client.post("/api/scenarios/run", json=request).json()["result"]
-    assert first["run_id"] == second["run_id"]
+    assert first["run_id"] != second["run_id"]
     assert first["telemetry"] == second["telemetry"]
     assert first["recovery"]["telemetry"] == second["recovery"]["telemetry"]
     assert first["reliability"]["target"] == 0.99

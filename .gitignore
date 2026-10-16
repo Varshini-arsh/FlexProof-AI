@@ -23,5 +23,7 @@ frontend/test-results/
 frontend/playwright-report/
 results/*
 !results/.gitkeep
+!results/benchmark_summary.json
+!results/closed-loop-controller-comparison.png
 data/*
 !data/.gitkeep

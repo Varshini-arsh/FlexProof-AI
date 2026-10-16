@@ -1,12 +1,22 @@
 """HTTP adapter for the nominal FP-001 checkpoint."""
 import os
 from typing import Literal
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
+from fastapi import Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from backend.app.services.simulation import assess_commitment, build_config, execute_simulation
+from backend.app.services.verification import verify_result
+from backend.app.services.reports import build_evidence_bundle, telemetry_csv, verification_pdf
+from backend.app.services.benchmarks import load_closed_loop_benchmark
+from backend.app.database import database_ready, list_runs, load_run, persist_run, record_report
+from sqlalchemy.exc import SQLAlchemyError
+import hashlib
+import json
 
 app = FastAPI(title="FlexProof AI API", version="0.2.0")
 app.add_middleware(
@@ -37,6 +47,14 @@ class ScenarioRequest(BaseModel):
         return value
 
 
+class EvidenceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    scenario: dict
+    result: dict
+    expected_input_hash: str | None = Field(default=None, min_length=64, max_length=64)
+    expected_evidence_hash: str | None = Field(default=None, min_length=64, max_length=64)
+
+
 @app.get("/")
 def home():
     return {"service": "FlexProof AI API", "status": "running", "api_version": app.version}
@@ -44,7 +62,13 @@ def home():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "FlexProof AI", "simulation_connected": True}
+    return {"status": "ok", "service": "FlexProof AI", "simulation_connected": True,
+            "database_connected": database_ready()}
+
+
+@app.get("/api/benchmarks/closed-loop")
+def closed_loop_benchmark():
+    return load_closed_loop_benchmark()
 
 
 @app.post("/api/scenarios/validate")
@@ -65,9 +89,18 @@ def execute_scenario(scenario: ScenarioRequest):
         config, result = execute_simulation(scenario.model_dump())
     except (ValueError, KeyError, TypeError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    engine_run_id = result["run_id"]
+    result["run_id"] = f"{scenario.scenario_id}-{uuid4().hex[:12]}"
+    verification = verify_result(config, result)
+    try:
+        persist_run(config, result, verification, scenario.model_dump())
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="Run completed but persistence failed; inspect database connectivity and migrations.") from exc
     return {"status": result["status"],
             "simulation_type": "nominal" if scenario.controller == "nominal" else "optimized",
-            "reliability_certified": False, "scenario": config, "result": result}
+            "reliability_certified": False, "scenario": config, "result": result,
+            "run_id": result["run_id"], "engine_run_id": engine_run_id,
+            "independent_verification": verification, "storage_status": "persisted"}
 
 
 @app.post("/api/commitments/evaluate")
@@ -76,3 +109,57 @@ def evaluate_scenario_commitment(scenario: ScenarioRequest):
         return assess_commitment(scenario.model_dump())
     except (ValueError, KeyError, TypeError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post("/api/evidence/verify")
+def verify_evidence(evidence: EvidenceRequest):
+    return verify_result(evidence.scenario, evidence.result,
+                         expected_input_hash=evidence.expected_input_hash,
+                         expected_evidence_hash=evidence.expected_evidence_hash)
+
+
+@app.post("/api/evidence/export")
+def export_evidence(evidence: EvidenceRequest):
+    bundle = build_evidence_bundle(evidence.scenario, evidence.result)
+    filename = f"{evidence.result.get('run_id', 'flexproof-run')}-evidence.json"
+    bundle["report_metadata_recorded"] = record_report(evidence.result.get("run_id"), "json", filename,
+        hashlib.sha256(json.dumps(bundle, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest())
+    return bundle
+
+
+@app.post("/api/evidence/telemetry.csv")
+def export_telemetry_csv(evidence: EvidenceRequest):
+    filename = f"{evidence.result.get('run_id', 'flexproof-run')}-telemetry.csv"
+    content = telemetry_csv(evidence.scenario, evidence.result)
+    record_report(evidence.result.get("run_id"), "csv", filename, hashlib.sha256(content.encode("utf-8")).hexdigest())
+    return Response(content, media_type="text/csv",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+@app.post("/api/evidence/report.pdf")
+def export_verification_report(evidence: EvidenceRequest):
+    bundle = build_evidence_bundle(evidence.scenario, evidence.result)
+    filename = f"{evidence.result.get('run_id', 'flexproof-run')}-verification.pdf"
+    content = verification_pdf(bundle)
+    record_report(evidence.result.get("run_id"), "pdf", filename, hashlib.sha256(content).hexdigest())
+    return Response(content, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+@app.get("/api/runs")
+def recent_runs(limit: int = Query(default=50, ge=1, le=200)):
+    try:
+        return {"runs": list_runs(limit)}
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="Run history database is unavailable or migrations are pending.") from exc
+
+
+@app.get("/api/runs/{run_id}")
+def recorded_run(run_id: str):
+    try:
+        record = load_run(run_id)
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="Run database is unavailable or migrations are pending.") from exc
+    if record is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return record

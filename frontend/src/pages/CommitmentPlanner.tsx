@@ -70,6 +70,13 @@ export type ScenarioConfiguration = {
     grid_import_ceiling_mw: number; target_soc: number; target_minute: number; clear_deferred_work_by_minute: number };
   [key: string]: unknown;
 };
+export type VerificationResult = {
+  status: "pass" | "fail" | "insufficient_evidence";
+  verifier_version: string; certification: false; independent_check: boolean;
+  check_count: number; failed_check_count: number; insufficient_check_count: number;
+  checks: Array<{name: string; status: "pass" | "fail" | "insufficient_evidence"; detail: string}>;
+  metrics: Record<string, unknown>; scope: string; limitations: string[];
+};
 
 export type ScenarioInput = {
   scenario_id: string; requested_reduction_mw: number; duration_minutes: number;
@@ -77,7 +84,7 @@ export type ScenarioInput = {
   controller: string; random_seed: number; calibration_scenarios: number;
   commitment_step_mw: number; recovery_grid_ceiling_mw: number;
 };
-export type RecordedRun = { request: ScenarioInput; config: ScenarioConfiguration; result: SimulationResult };
+export type RecordedRun = { request: ScenarioInput; config: ScenarioConfiguration; result: SimulationResult; verification?: VerificationResult };
 
 type SimulationResponse = {
   scenario: ScenarioConfiguration;
@@ -85,6 +92,7 @@ type SimulationResponse = {
   simulation_type: string;
   reliability_certified: boolean;
   result: SimulationResult;
+  independent_verification: VerificationResult;
 };
 
 type Assessment = {
@@ -162,7 +170,7 @@ export default function CommitmentPlanner({ initialRun, onRun }: {
       }
 
       setSimulation(data.result);
-      onRun?.({ request: scenario, config: data.scenario, result: data.result });
+      onRun?.({ request: scenario, config: data.scenario, result: data.result, verification: data.independent_verification });
       setMessage(data.result.status === "solver_error" ? "The optimizer failed. No fallback schedule was used." : data.result.status === "infeasible"
         ? "The nominal dispatch is infeasible. Inspect the returned constraints and partial evidence below."
         : data.result.accepted_commitment_mw === 0 ? "No positive commitment was accepted. Review the calibration evidence and explanation."
