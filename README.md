@@ -64,6 +64,8 @@ Use the API-independent functions in `flexproof.engine` to load scenarios, evalu
 
 The checked-in `results/benchmark_summary.json` records a 1,000-scenario calibration and 5,000 paired held-out scenarios, their seeds, confidence intervals, paired tests, and raw file checksums. Full 19 MB JSON and 3.34 MB CSV artifacts are retained locally under `results/closed-loop-fp001-reproduced/` and are not required for app startup. The benchmark API explicitly indicates when those raw files are absent. The results and limitations are in `docs/RESULTS_AND_LIMITATIONS.md`.
 
+See `docs/EVIDENCE_MANIFEST.md` for experiment splits, configuration and artifact hashes, controller versions, reproduction commands, and a recommended sharing method for large raw evidence.
+
 ## Reproducible research experiments
 
 The tracked four-controller result set under `results/fp001-cal1000-test5000/` uses calibration seeds 100000–100999 and held-out seeds 200000–204999. The separate closed-loop controller evaluation summarized in `results/benchmark_summary.json` uses calibration seeds 100000–100999 and held-out seeds 400000–404999. These are distinct experiment protocols and are not interchangeable. In particular, the 98.4% value is the calibration estimate (984/1,000); the four-controller held-out result is 4,922/5,000 (98.44%), while the closed-loop rolling held-out result is 4,888/5,000 (97.76%). See `docs/RESULTS_AND_LIMITATIONS.md` before citing either result.

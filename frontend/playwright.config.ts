@@ -17,7 +17,7 @@ export default defineConfig({
     {
       command: `"${python}" -m alembic upgrade head && "${python}" -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8010`,
       cwd: root, url: "http://127.0.0.1:8010/api/health", reuseExistingServer: false,
-      env: { PYTHONPATH: root, DATABASE_URL: "sqlite:///./.cache/e2e-flexproof.sqlite3", FLEXPROOF_CORS_ORIGINS: "http://127.0.0.1:5175" },
+      env: { PYTHONPATH: root, DATABASE_URL: "sqlite:///./e2e-flexproof.sqlite3", FLEXPROOF_CORS_ORIGINS: "http://127.0.0.1:5175" },
     },
     {
       command: "npm run dev -- --host 127.0.0.1 --port 5175 --strictPort",
