@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: flexproof
       POSTGRES_USER: flexproof
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flexproof_dev_only}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file}
     ports:
       - "5433:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.api
     environment:
-      DATABASE_URL: postgresql+psycopg://flexproof:${POSTGRES_PASSWORD:-flexproof_dev_only}@db:5432/flexproof
+      DATABASE_URL: postgresql+psycopg://flexproof:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in a local .env file}@db:5432/flexproof
       FLEXPROOF_CORS_ORIGINS: http://localhost:8081,http://127.0.0.1:8081
     ports:
       - "8011:8000"

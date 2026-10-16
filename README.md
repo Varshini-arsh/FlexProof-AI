@@ -42,7 +42,7 @@ Docker Compose uses an isolated project name and ports so it can coexist with ot
 docker compose -p flexproof-m2 up --build -d
 ```
 
-Open `http://localhost:8081`; the API is at `http://localhost:8011` and PostgreSQL is exposed on port 5433 for local inspection. The database uses a named persistent volume. To set a local password, create a `.env` file with `POSTGRES_PASSWORD=...` before starting. Stop this stack with `docker compose -p flexproof-m2 down`; this leaves the database volume intact.
+Open `http://localhost:8081`; the API is at `http://localhost:8011` and PostgreSQL is exposed on port 5433 for local inspection. The database uses a named persistent volume. Before starting, copy `.env.example` to `.env` and set `POSTGRES_PASSWORD` to a local development value; Compose refuses to start without it. Never commit `.env`. Stop this stack with `docker compose -p flexproof-m2 down`; this leaves the database volume intact.
 
 ## Verify and test
 
