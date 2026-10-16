@@ -1,6 +1,6 @@
 # Integration guide
 
-Install with Python 3.12 using python -m pip install -e ".[dev]".
+Install with Python 3.12 using `python -m pip install -e ".[api,dev]"`. The `api` extra is required to run FastAPI; the `dev` extra provides pytest and test clients.
 
 The current event runner is `simulator.engine.run_nominal_event(config)`, where config is a mapping or YAML path. It returns a JSON-compatible schema 1.0.0 result with twelve interval samples for FP-001. This is a single nominal scenario; it does not evaluate or certify the 95% reliability target.
 
