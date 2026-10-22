@@ -20,13 +20,11 @@ The stable Python entry points are `flexproof.engine.load_scenario`, `evaluate_c
 
 ## Live demo
 
-- Frontend and backend (one link): https://HF_USERNAME-flexproof-ai.hf.space
-- API docs: https://HF_USERNAME-flexproof-ai.hf.space/docs
-- Space page: https://huggingface.co/spaces/HF_USERNAME/flexproof-ai
+- Frontend and backend (one link): https://flexproof-ai.onrender.com
+- API docs: https://flexproof-ai.onrender.com/docs
+- Health check: https://flexproof-ai.onrender.com/api/health
 
-The website and the API run together in one Hugging Face Space (Docker). The root `Dockerfile` builds the React app and the backend serves it. Run history is stored on the container disk and resets when the Space restarts. This is a demo, not a production deployment.
-
-To redeploy: create a Docker Space named `flexproof-ai`, run `hf auth login --add-to-git-credential` once, then `bash deploy/push_to_space.sh HF_USERNAME`.
+The website and the API run together as one Docker service on Render's free plan, deployed from `render.yaml`. The root `Dockerfile` builds the React app and the backend serves it. The first request after idle can take about a minute while the service wakes up. Run history is stored on the container disk and resets when the service restarts. This is a demo, not a production deployment.
 
 ## Full-stack prototype
 
