@@ -94,7 +94,12 @@ def _paired_mean_difference_ci(first: list[float], second: list[float], *,
         return None
     differences = np.asarray([a - b for a, b in pairs], dtype=float)
     rng = np.random.default_rng(seed)
-    draws = rng.choice(differences, size=(resamples, len(differences)), replace=True).mean(axis=1)
+    # Draw in row blocks to bound memory; the stream is consumed in the same order.
+    block = max(1, 2_000_000 // max(1, len(differences)))
+    draws = np.concatenate([
+        rng.choice(differences, size=(min(block, resamples - start), len(differences)),
+                   replace=True).mean(axis=1)
+        for start in range(0, resamples, block)])
     alpha = (1.0 - confidence) / 2.0
     return [float(np.quantile(draws, alpha)), float(np.quantile(draws, 1.0 - alpha))]
 
@@ -104,7 +109,7 @@ def run_closed_loop_rafc_evaluation(
     calibration_seed: int = 100_000, test_scenarios: int = 100,
     test_seed: int = 400_000, commitment_step_mw: float = 0.1,
     confidence: float = 0.95, assumptions: UncertaintyAssumptions | None = None,
-    output_dir: str | Path | None = None,
+    output_dir: str | Path | None = None, dispatch_policy: str = "v1",
 ) -> dict:
     """Run paired fixed, rolling risk-aware, and rolling RAFC-V test controllers.
 
@@ -129,18 +134,26 @@ def run_closed_loop_rafc_evaluation(
         raise ValueError("calibration and held-out seed ranges must be disjoint")
     if not 0 < confidence < 1:
         raise ValueError("confidence must be in (0,1)")
+    if dispatch_policy not in ("v1", "v2"):
+        raise ValueError("dispatch_policy must be 'v1' or 'v2'")
+    # v2 applies to BOTH rolling arms so the comparison isolates the commitment screen.
+    cal_margin = 0.0 if dispatch_policy == "v2" else None
+    dispatch_kwargs = ({"forecast": "persistence", "soft_margin": True}
+                       if dispatch_policy == "v2" else {})
 
     a = assumptions or UncertaintyAssumptions()
     cal_start = perf_counter()
     rafc_cal = calibrate_commitment(
         config, n_scenarios=calibration_scenarios, seed=calibration_seed,
         step_mw=commitment_step_mw, confidence=confidence,
-        recovery_aware=True, assumptions=a,
+        recovery_aware=True, assumptions=a, meter_margin_mw=cal_margin,
+        observed_noise=dispatch_policy == "v2",
     )
     risk_cal = calibrate_commitment(
         config, n_scenarios=calibration_scenarios, seed=calibration_seed,
         step_mw=commitment_step_mw, confidence=confidence,
-        recovery_aware=False, assumptions=a,
+        recovery_aware=False, assumptions=a, meter_margin_mw=cal_margin,
+        observed_noise=dispatch_policy == "v2",
     )
     calibration_runtime = perf_counter() - cal_start
     commitments = {
@@ -200,6 +213,7 @@ def run_closed_loop_rafc_evaluation(
                 dispatch = solve_rolling_event_dispatch(
                     config, commitment, observations=observations,
                     delivery_margin_mw=meter_margin if commitment > 1e-12 else 0.0,
+                    **dispatch_kwargs,
                 )
                 dispatch_runtime = perf_counter() - started
                 shared_from = None
@@ -378,6 +392,7 @@ def run_closed_loop_rafc_evaluation(
         "heldout_sample_count": test_scenarios,
         "confidence_level": confidence,
         "paired_disturbances": True,
+        "dispatch_policy": dispatch_policy,
         "artifact_type": "experiment_result",
         "assumptions": {key: getattr(a, key) for key in a.__dataclass_fields__},
         "commitment_calibration": {

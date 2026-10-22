@@ -19,6 +19,8 @@ def main() -> None:
     parser.add_argument("--test-scenarios", type=int, default=100)
     parser.add_argument("--test-seed", type=int, default=400_000)
     parser.add_argument("--commitment-step-mw", type=float, default=0.1)
+    parser.add_argument("--dispatch-policy", choices=("v1", "v2"), default="v1",
+                        help="v2 = persistence forecast with soft meter margin (applies to both rolling arms)")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "results" / "closed-loop-fp001")
     args = parser.parse_args()
     with args.config.open("r", encoding="utf-8") as stream:
@@ -27,7 +29,7 @@ def main() -> None:
         config, calibration_scenarios=args.calibration_scenarios,
         calibration_seed=args.calibration_seed, test_scenarios=args.test_scenarios,
         test_seed=args.test_seed, commitment_step_mw=args.commitment_step_mw,
-        output_dir=args.output_dir,
+        output_dir=args.output_dir, dispatch_policy=args.dispatch_policy,
     )
     calibration = result["commitment_calibration"]
     print("Commitment MW: RAFC-V", calibration["rolling_rafc_v"]["accepted_commitment_mw"],

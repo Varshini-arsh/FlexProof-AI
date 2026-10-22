@@ -58,6 +58,14 @@ Evaluated on 5,000 held-out paired scenarios (seeds 400000–404999). Commitment
 - RecoveryGuard sensitivity: recovery was feasible in 45 of 48 deterministic cases. The 3 failures had a 4 MWh backlog with an 18 MW ceiling.
 - The full-stack prototype passes 82 automated tests, and a live RAFC-V run passes 42 of 42 independent arithmetic checks.
 
+### Improved dispatch (v2) and recovery stress
+
+The 112 failures above shared one cause: the controller spent battery energy on a small safety margin early in the event and then missed the last 5-minute interval. About 70 of them were physically deliverable. Dispatch v2 treats that margin as a low-priority goal and plans with the limits observed in the current interval (never future ones). It is opt-in: `--dispatch-policy v2`.
+
+- **Optimal on what is physically possible.** On the same 5,000 held-out scenarios, v2 commits 4.95 MW and succeeds in all 4,878 scenarios that were physically deliverable at that level (97.56%), with mean delivered power 4.994 MW (v1: 4.946 MW). The remaining 122 cannot be met by any controller at 4.95 MW.
+- **RAFC-V wins when recovery is tight.** With the recovery grid ceiling lowered, risk-aware MPC still promises 4.9 MW and succeeds in 0 of 1,000 events. RAFC-V lowers its promise and succeeds in 999 of 1,000 (18.0 MW ceiling, commits 3.8 MW) and 1,000 of 1,000 (18.2 MW ceiling, commits 4.5 MW).
+- **Caveats.** In the base FP-001 setup recovery never binds, so RAFC-V and MPC still tie. The stress ceilings were chosen to expose the recovery constraint, and an MPC that also screens recovery would be expected to match RAFC-V. Details: [docs/RESULTS_AND_LIMITATIONS.md](docs/RESULTS_AND_LIMITATIONS.md). Aggregate result files are in `results/summaries/`.
+
 ## Limits
 
 This is simulation evidence only. It is not measured facility performance, utility certification, or a claim that RAFC-V is better in general. The prototype has no user accounts and no production database.

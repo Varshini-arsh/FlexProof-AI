@@ -11,6 +11,7 @@ frontend/dist/
 !.env.example
 results/*
 !results/.gitkeep
+!results/summaries/
 !results/fp001-cal1000-test1000/
 results/fp001-cal1000-test1000/*
 !results/fp001-cal1000-test1000/four_controller_comparison.json

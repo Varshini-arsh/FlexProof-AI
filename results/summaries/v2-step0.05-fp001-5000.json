@@ -1,0 +1,315 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_id": "FP-001-closed-loop-controller-comparison",
+  "scenario_id": "FP-001",
+  "calibration_seed_start": 100000,
+  "calibration_sample_count": 1000,
+  "heldout_seed_start": 400000,
+  "heldout_sample_count": 5000,
+  "confidence_level": 0.95,
+  "paired_disturbances": true,
+  "dispatch_policy": "v2",
+  "artifact_type": "experiment_result",
+  "assumptions": {
+    "initial_soc_error_bound": 0.015,
+    "critical_power_std_mw": 0.1,
+    "critical_power_truncation_mw": 0.3,
+    "urgent_reclaim_probability": 0.1,
+    "urgent_reclaim_mw": 0.4,
+    "battery_derating_probability": 0.05,
+    "battery_derating_fraction": 0.1,
+    "meter_noise_std_mw": 0.02
+  },
+  "commitment_calibration": {
+    "rolling_rafc_v": {
+      "status": "confirmed",
+      "accepted_commitment_mw": 4.95,
+      "target_reliability": 0.95,
+      "confidence_level": 0.95,
+      "calibration_sample_count": 1000,
+      "seed_start": 100000,
+      "selected_evidence": {
+        "commitment_mw": 4.95,
+        "successes": 974,
+        "sample_count": 1000,
+        "estimated_reliability": 0.974,
+        "simultaneous_lower_bound": 0.9516635793786016
+      },
+      "method": "scenario simulation with Bonferroni-adjusted one-sided Wilson lower bounds",
+      "recovery_aware": true,
+      "limitations": [
+        "Recovery feasibility is screened with exact cumulative shared-headroom and task-rate checks for RecoveryGuard's current LP; the selected nominal plan is also optimized by RecoveryGuard.",
+        "Disturbance probabilities are assumed, not empirically measured.",
+        "Critical-power variation is common-mode to baseline-relative event reduction.",
+        "Use separate seeds for calibration and held-out evaluation."
+      ]
+    },
+    "rolling_risk_aware_mpc": {
+      "status": "confirmed",
+      "accepted_commitment_mw": 4.95,
+      "target_reliability": 0.95,
+      "confidence_level": 0.95,
+      "calibration_sample_count": 1000,
+      "seed_start": 100000,
+      "selected_evidence": {
+        "commitment_mw": 4.95,
+        "successes": 974,
+        "sample_count": 1000,
+        "estimated_reliability": 0.974,
+        "simultaneous_lower_bound": 0.9516635793786016
+      },
+      "method": "scenario simulation with Bonferroni-adjusted one-sided Wilson lower bounds",
+      "recovery_aware": false,
+      "limitations": [
+        "Recovery feasibility is screened with exact cumulative shared-headroom and task-rate checks for RecoveryGuard's current LP; the selected nominal plan is also optimized by RecoveryGuard.",
+        "Disturbance probabilities are assumed, not empirically measured.",
+        "Critical-power variation is common-mode to baseline-relative event reduction.",
+        "Use separate seeds for calibration and held-out evaluation."
+      ]
+    },
+    "heldout_data_used": false,
+    "same_calibration_seed_set": true
+  },
+  "controller_comparison": {
+    "fixed_horizon": "RAFC commitment; meter-margin protected nominal schedule; then held-out disturbances",
+    "rolling_risk_aware_mpc": "event-reliability calibration; rolling Pyomo/HiGHS dispatch; RecoveryGuard verification",
+    "rolling_rafc_v": "event and recovery reliability calibration; same rolling dispatch and RecoveryGuard"
+  },
+  "results": [
+    {
+      "controller": "fixed_horizon",
+      "commitment_mw": 4.95,
+      "heldout_count": 5000,
+      "event_successes": 4448,
+      "event_success_probability": 0.8896,
+      "event_wilson_interval": [
+        0.8806125847611544,
+        0.8979892218832569
+      ],
+      "event_and_recovery_successes": 4448,
+      "event_and_recovery_success_probability": 0.8896,
+      "joint_wilson_interval": [
+        0.8806125847611544,
+        0.8979892218832569
+      ],
+      "mean_delivered_mw": 4.955712326724219,
+      "delivered_observation_count": 5000,
+      "mean_minimum_delivered_mw": 4.955712326724219,
+      "mean_max_shortfall_mw": 0.03622162795494653,
+      "mean_shortfall_energy_mwh": 0.03622162795494653,
+      "scenarios_with_shortfall": 552,
+      "battery_reserve_violation_scenarios": 0,
+      "battery_reserve_violation_steps": 0,
+      "workload_deadline_miss_scenarios": 0,
+      "workload_deadline_evaluation_unknown_scenarios": 0,
+      "recovery_successes": 5000,
+      "recovery_feasibility_probability": 1.0,
+      "mean_rebound_peak_mw": 18.266201352380303,
+      "rebound_peak_case_count": 5000,
+      "max_rebound_peak_mw": 18.315515231933347,
+      "mean_event_solver_runtime_seconds": null,
+      "event_solver_runtime_case_count": 0,
+      "schedule_setup_solver_runtime_seconds": 0.03421460004756227,
+      "mean_recovery_solver_runtime_seconds": 0.10607919062001166,
+      "solver_failure_scenarios": 0,
+      "failure_categories": {
+        "delivery_shortfall": 552
+      }
+    },
+    {
+      "controller": "rolling_risk_aware_mpc",
+      "commitment_mw": 4.95,
+      "heldout_count": 5000,
+      "event_successes": 4878,
+      "event_success_probability": 0.9756,
+      "event_wilson_interval": [
+        0.9709444054164321,
+        0.9795253564934298
+      ],
+      "event_and_recovery_successes": 4878,
+      "event_and_recovery_success_probability": 0.9756,
+      "joint_wilson_interval": [
+        0.9709444054164321,
+        0.9795253564934298
+      ],
+      "mean_delivered_mw": 4.993984629352709,
+      "delivered_observation_count": 5000,
+      "mean_minimum_delivered_mw": 4.9827898696221045,
+      "mean_max_shortfall_mw": 0.011760936467574586,
+      "mean_shortfall_energy_mwh": 0.0009800780389645537,
+      "scenarios_with_shortfall": 122,
+      "battery_reserve_violation_scenarios": 0,
+      "battery_reserve_violation_steps": 0,
+      "workload_deadline_miss_scenarios": 0,
+      "workload_deadline_evaluation_unknown_scenarios": 0,
+      "recovery_successes": 5000,
+      "recovery_feasibility_probability": 1.0,
+      "mean_rebound_peak_mw": 18.27680309826077,
+      "rebound_peak_case_count": 5000,
+      "max_rebound_peak_mw": 18.331980301941933,
+      "mean_event_solver_runtime_seconds": 0.34644366932065457,
+      "event_solver_runtime_case_count": 5000,
+      "schedule_setup_solver_runtime_seconds": null,
+      "mean_recovery_solver_runtime_seconds": 0.10568777066015173,
+      "solver_failure_scenarios": 0,
+      "failure_categories": {
+        "delivery_shortfall": 122
+      }
+    },
+    {
+      "controller": "rolling_rafc_v",
+      "commitment_mw": 4.95,
+      "heldout_count": 5000,
+      "event_successes": 4878,
+      "event_success_probability": 0.9756,
+      "event_wilson_interval": [
+        0.9709444054164321,
+        0.9795253564934298
+      ],
+      "event_and_recovery_successes": 4878,
+      "event_and_recovery_success_probability": 0.9756,
+      "joint_wilson_interval": [
+        0.9709444054164321,
+        0.9795253564934298
+      ],
+      "mean_delivered_mw": 4.993984629352709,
+      "delivered_observation_count": 5000,
+      "mean_minimum_delivered_mw": 4.9827898696221045,
+      "mean_max_shortfall_mw": 0.011760936467574586,
+      "mean_shortfall_energy_mwh": 0.0009800780389645537,
+      "scenarios_with_shortfall": 122,
+      "battery_reserve_violation_scenarios": 0,
+      "battery_reserve_violation_steps": 0,
+      "workload_deadline_miss_scenarios": 0,
+      "workload_deadline_evaluation_unknown_scenarios": 0,
+      "recovery_successes": 5000,
+      "recovery_feasibility_probability": 1.0,
+      "mean_rebound_peak_mw": 18.27680309826077,
+      "rebound_peak_case_count": 5000,
+      "max_rebound_peak_mw": 18.331980301941933,
+      "mean_event_solver_runtime_seconds": 0.34644366932065457,
+      "event_solver_runtime_case_count": 5000,
+      "schedule_setup_solver_runtime_seconds": null,
+      "mean_recovery_solver_runtime_seconds": 0.10568777066015173,
+      "solver_failure_scenarios": 0,
+      "failure_categories": {
+        "delivery_shortfall": 122
+      }
+    }
+  ],
+  "paired_tests": {
+    "fixed_horizon_vs_rolling_risk_aware_mpc": {
+      "event_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 430,
+        "discordant_pairs": 430,
+        "p_value": 7.213264545145106e-130,
+        "holm_adjusted_p_value": 2.1639793635435318e-129
+      },
+      "event_recovery_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 430,
+        "discordant_pairs": 430,
+        "p_value": 7.213264545145106e-130,
+        "holm_adjusted_p_value": 2.1639793635435318e-129
+      },
+      "paired_mean_difference_ci_first_minus_second": {
+        "delivered_mean_mw": [
+          -0.041533848150918845,
+          -0.03502908021517768
+        ],
+        "shortfall_energy_mwh": [
+          0.032352774944505426,
+          0.03816572211469441
+        ],
+        "rebound_peak_mw": [
+          -0.011505221094436227,
+          -0.00970334631999302
+        ]
+      }
+    },
+    "fixed_horizon_vs_rolling_rafc_v": {
+      "event_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 430,
+        "discordant_pairs": 430,
+        "p_value": 7.213264545145106e-130,
+        "holm_adjusted_p_value": 2.1639793635435318e-129
+      },
+      "event_recovery_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 430,
+        "discordant_pairs": 430,
+        "p_value": 7.213264545145106e-130,
+        "holm_adjusted_p_value": 2.1639793635435318e-129
+      },
+      "paired_mean_difference_ci_first_minus_second": {
+        "delivered_mean_mw": [
+          -0.04152415396020513,
+          -0.035126678275274825
+        ],
+        "shortfall_energy_mwh": [
+          0.03242591717339971,
+          0.038176783337729725
+        ],
+        "rebound_peak_mw": [
+          -0.011502535723047689,
+          -0.009730381793704262
+        ]
+      }
+    },
+    "rolling_risk_aware_mpc_vs_rolling_rafc_v": {
+      "event_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 0,
+        "discordant_pairs": 0,
+        "p_value": 1.0,
+        "holm_adjusted_p_value": 1.0
+      },
+      "event_recovery_mcnemar": {
+        "method": "exact two-sided McNemar test",
+        "sample_count": 5000,
+        "first_only_successes": 0,
+        "second_only_successes": 0,
+        "discordant_pairs": 0,
+        "p_value": 1.0,
+        "holm_adjusted_p_value": 1.0
+      },
+      "paired_mean_difference_ci_first_minus_second": {
+        "delivered_mean_mw": [
+          0.0,
+          0.0
+        ],
+        "shortfall_energy_mwh": [
+          0.0,
+          0.0
+        ],
+        "rebound_peak_mw": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "runtime_seconds": 3184.7136180999805,
+  "calibration_runtime_seconds": 0.7908825000049546,
+  "limitations": [
+    "Disturbance distributions are modeled assumptions, not measured facility data.",
+    "Each held-out disturbance is constant within one event; it becomes observable to rolling controllers only at its interval.",
+    "Critical-power deviation is common-mode to baseline-relative reduction and is not a critical-service failure model.",
+    "Fixed-horizon schedule is optimized for the same RAFC commitment and 99% meter margin, but does not re-optimize under disturbance observations.",
+    "RecoveryGuard uses the explicit 17 MW modeled recovery base and checks the shared grid ceiling.",
+    "Fixed-horizon optimizer setup time is one pre-test schedule solve; rolling event solver time is per held-out scenario, so these runtime values are not directly paired."
+  ],
+  "note": "Aggregate summary. Per-scenario rows omitted for size; regenerate with evaluation.run_closed_loop (see docs/RESULTS_AND_LIMITATIONS.md)."
+}
