@@ -1,9 +1,0 @@
-{
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60,
-      "excludeFiles": "{frontend/**,results/**,docs/**,tests/**,data/**,.venv/**,.git/**}"
-    }
-  },
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
-}

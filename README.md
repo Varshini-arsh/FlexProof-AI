@@ -20,10 +20,13 @@ The stable Python entry points are `flexproof.engine.load_scenario`, `evaluate_c
 
 ## Live demo
 
-- Frontend: https://flexproof-ai.vercel.app
-- Backend API: https://flexproof-api.vercel.app (docs at `/docs`, health at `/api/health`)
+- Frontend and backend (one link): https://HF_USERNAME-flexproof-ai.hf.space
+- API docs: https://HF_USERNAME-flexproof-ai.hf.space/docs
+- Space page: https://huggingface.co/spaces/HF_USERNAME/flexproof-ai
 
-Both are deployed on Vercel as two projects: the frontend from the `frontend` folder, and the backend from the repo root (`api/index.py`, `vercel.json`). The backend runs as a serverless function, so run history is kept in `/tmp` and resets between cold starts. This is a demo, not a production deployment.
+The website and the API run together in one Hugging Face Space (Docker). The root `Dockerfile` builds the React app and the backend serves it. Run history is stored on the container disk and resets when the Space restarts. This is a demo, not a production deployment.
+
+To redeploy: create a Docker Space named `flexproof-ai`, run `hf auth login --add-to-git-credential` once, then `bash deploy/push_to_space.sh HF_USERNAME`.
 
 ## Full-stack prototype
 

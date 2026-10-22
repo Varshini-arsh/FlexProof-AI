@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import os
 from io import BytesIO
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from jsonschema import ValidationError as JSONSchemaValidationError
 from pydantic import ValidationError
 
@@ -25,9 +26,13 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", 
                    allow_headers=["Content-Type"], expose_headers=["Content-Disposition"])
 
 
-@app.get("/")
-def home() -> dict:
-    return {"service": "FlexProof AI API", "status": "ok", "api_version": app.version}
+FRONTEND_DIST = Path(os.getenv("FLEXPROOF_FRONTEND_DIST", Path(__file__).resolve().parents[2] / "frontend_dist"))
+
+
+if not (FRONTEND_DIST / "index.html").is_file():
+    @app.get("/")
+    def home() -> dict:
+        return {"service": "FlexProof AI API", "status": "ok", "api_version": app.version}
 
 
 @app.get("/api/health")
@@ -104,3 +109,14 @@ def run_report(run_id: str) -> StreamingResponse:
     filename = f"flexproof-{record['scenario_id']}-{run_id[:24]}.pdf"
     return StreamingResponse(BytesIO(pdf), media_type="application/pdf",
                              headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+if (FRONTEND_DIST / "index.html").is_file():
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def serve_frontend(full_path: str) -> FileResponse:
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = (FRONTEND_DIST / full_path).resolve()
+        if candidate.is_file() and FRONTEND_DIST.resolve() in candidate.parents:
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_DIST / "index.html")

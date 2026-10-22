@@ -1,9 +1,0 @@
-frontend
-.venv
-.git
-results
-data
-tests
-docs
-.pytest_cache
-flexproof_ai.egg-info
