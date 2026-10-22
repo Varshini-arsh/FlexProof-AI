@@ -18,6 +18,13 @@ FP-001 is a modeled assumption, not measured data or grid certification. The 17 
 
 The stable Python entry points are `flexproof.engine.load_scenario`, `evaluate_commitment`, and `run_scenario`. See docs/integration_guide.md for controller options and contracts/examples for schema-valid input/output fixtures.
 
+## Live demo
+
+- Frontend: https://flexproof-ai.onrender.com
+- Backend API: https://flexproof-api.onrender.com (docs at `/docs`, health at `/api/health`)
+
+Deployed on Render's free plan from `render.yaml`. The first request after idle can take about a minute while the backend wakes up. Run history is stored in SQLite on the container disk, so it can reset when the service restarts or redeploys. This is a demo, not a production deployment.
+
 ## Full-stack prototype
 
 Install Python 3.12 and the API/test extras, then start the API:

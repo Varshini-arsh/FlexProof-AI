@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: flexproof-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: FLEXPROOF_CORS_ORIGINS
+        value: https://flexproof-ai.onrender.com
+  - type: web
+    name: flexproof-ai
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://flexproof-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
