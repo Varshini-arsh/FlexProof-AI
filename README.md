@@ -20,10 +20,10 @@ The stable Python entry points are `flexproof.engine.load_scenario`, `evaluate_c
 
 ## Live demo
 
-- Frontend: https://flexproof-ai.onrender.com
-- Backend API: https://flexproof-api.onrender.com (docs at `/docs`, health at `/api/health`)
+- Frontend: https://flexproof-ai.vercel.app
+- Backend API: https://flexproof-api.vercel.app (docs at `/docs`, health at `/api/health`)
 
-Deployed on Render's free plan from `render.yaml`. The first request after idle can take about a minute while the backend wakes up. Run history is stored in SQLite on the container disk, so it can reset when the service restarts or redeploys. This is a demo, not a production deployment.
+Both are deployed on Vercel as two projects: the frontend from the `frontend` folder, and the backend from the repo root (`api/index.py`, `vercel.json`). The backend runs as a serverless function, so run history is kept in `/tmp` and resets between cold starts. This is a demo, not a production deployment.
 
 ## Full-stack prototype
 

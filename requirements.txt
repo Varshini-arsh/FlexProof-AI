@@ -1,0 +1,11 @@
+numpy>=2.0
+pandas>=2.2
+scipy>=1.13
+simpy>=4.1
+pyomo>=6.8
+highspy>=1.7
+statsmodels>=0.14
+PyYAML>=6.0
+matplotlib>=3.9
+jsonschema>=4.22
+fastapi>=0.115
