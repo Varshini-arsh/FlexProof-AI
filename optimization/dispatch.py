@@ -17,14 +17,24 @@ TOL=1e-7
 
 def solve_rolling_event_dispatch(config: dict[str,Any], accepted_commitment_mw: float, *,
         observations: list[dict[str,float]] | None = None,
-        delivery_margin_mw: float = 0.0, time_limit_seconds: float = 30.0) -> dict:
+        delivery_margin_mw: float = 0.0, time_limit_seconds: float = 30.0,
+        forecast: str = "nominal", soft_margin: bool = False) -> dict:
     """Re-optimize the remaining event horizon and apply only each first action.
 
     Observation keys: ``available_flexible_compute_mw`` (maximum curtailment),
     ``battery_discharge_scale`` (0..1), ``critical_power_delta_mw`` (common-mode
     baseline/load change), and ``meter_noise_mw``. Future observations are
-    unknown to each solve; future capability forecasts use nominal limits.
+    unknown to each solve.
+
+    ``forecast="nominal"`` (default) assumes future intervals have nominal limits.
+    ``forecast="persistence"`` assumes the limits observed in the current interval
+    persist for the rest of the event, as the disturbance model states; it never
+    reads future observations. ``soft_margin=True`` treats ``delivery_margin_mw``
+    as a low-priority goal, so it can never cost battery energy that the
+    commitment itself needs later in the event.
     """
+    if forecast not in ("nominal","persistence"):
+        raise ValueError("forecast must be 'nominal' or 'persistence'")
     fcfg=config["facility"]
     bcfg=config["battery"]
     ecfg=config["grid_event"]
@@ -74,6 +84,7 @@ def solve_rolling_event_dispatch(config: dict[str,Any], accepted_commitment_mw: 
     combined_hours=max(clear_hours,target_hours)
     target_soc=float(recovery["target_soc"])
 
+    margin_part=0.0 if soft_margin else delivery_margin_mw
     for current in range(n):
         remaining=n-current
         model=pyo.ConcreteModel()
@@ -98,13 +109,20 @@ def solve_rolling_event_dispatch(config: dict[str,Any], accepted_commitment_mw: 
                 discharge_caps.append(battery.max_discharge_mw*float(observed.get("battery_discharge_scale",1.0)))
                 critical_delta=float(observed.get("critical_power_delta_mw",0.0))
                 floors.append(base+critical_delta)
-                delivery_targets.append(accepted_commitment_mw+delivery_margin_mw
+                delivery_targets.append(accepted_commitment_mw+margin_part
+                    +float(observed.get("meter_noise_mw",0.0)))
+            elif forecast=="persistence":
+                observed=obs[current]
+                caps.append(float(observed.get("available_flexible_compute_mw",facility.deferrable_compute_mw)))
+                discharge_caps.append(battery.max_discharge_mw*float(observed.get("battery_discharge_scale",1.0)))
+                floors.append(base+float(observed.get("critical_power_delta_mw",0.0)))
+                delivery_targets.append(accepted_commitment_mw+margin_part
                     +float(observed.get("meter_noise_mw",0.0)))
             else:
                 caps.append(facility.deferrable_compute_mw)
                 discharge_caps.append(battery.max_discharge_mw)
                 floors.append(base)
-                delivery_targets.append(accepted_commitment_mw+delivery_margin_mw)
+                delivery_targets.append(accepted_commitment_mw+margin_part)
         model.curtail_cap=pyo.Constraint(model.T,rule=lambda m,t:m.curtail[t]<=caps[t])
         model.discharge_cap=pyo.Constraint(model.T,rule=lambda m,t:m.discharge[t]<=discharge_caps[t])
         model.soc_balance=pyo.Constraint(model.T,rule=lambda m,t:m.soc[t+1]==m.soc[t]
@@ -112,6 +130,10 @@ def solve_rolling_event_dispatch(config: dict[str,Any], accepted_commitment_mw: 
         model.backlog_balance=pyo.Constraint(model.T,rule=lambda m,t:m.backlog[t+1]==m.backlog[t]+m.curtail[t]*dt)
         model.delivery=pyo.Constraint(model.T,rule=lambda m,t:m.shortfall[t]>=
             delivery_targets[t]-m.curtail[t]-m.discharge[t])
+        if soft_margin:
+            model.margin_gap=pyo.Var(model.T,domain=pyo.NonNegativeReals)
+            model.margin_goal=pyo.Constraint(model.T,rule=lambda m,t:m.margin_gap[t]>=
+                delivery_targets[t]+delivery_margin_mw-m.curtail[t]-m.discharge[t])
         model.grid_floor=pyo.Constraint(model.T,rule=lambda m,t:
             m.curtail[t]+m.discharge[t]<=floors[t])
         # The ending event state must admit one joint RecoveryGuard schedule.
@@ -130,6 +152,7 @@ def solve_rolling_event_dispatch(config: dict[str,Any], accepted_commitment_mw: 
                 <=recovery_headroom*combined_hours)
         model.objective=pyo.Objective(expr=1_000_000*sum(model.shortfall[t]*dt for t in model.T)
             +sum(model.curtail[t]*dt for t in model.T)
+            +(100*sum(model.margin_gap[t]*dt for t in model.T) if soft_margin else 0)
             +10*sum(model.discharge[t]*dt for t in model.T)
             +0.001*model.recovery_charge,sense=pyo.minimize)
         solver=pyo.SolverFactory("appsi_highs")
@@ -188,6 +211,8 @@ def solve_rolling_event_dispatch(config: dict[str,Any], accepted_commitment_mw: 
     complete=len(rows)==n and not violations
     signature={"scenario":config["scenario_id"],"commitment":accepted_commitment_mw,
                "observations":obs,"delivery_margin_mw":delivery_margin_mw}
+    if forecast!="nominal" or soft_margin:
+        signature.update({"forecast":forecast,"soft_margin":soft_margin})
     run_id=f"{config['scenario_id']}-rolling-{sha256(json.dumps(signature,sort_keys=True).encode()).hexdigest()[:12]}"
     return {"schema_version":"1.0.0","scenario_id":config["scenario_id"],"run_id":run_id,
         "controller":"rolling_mpc","controller_version":"rolling-mpc-0.1.0",

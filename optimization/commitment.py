@@ -18,7 +18,9 @@ def wilson_lower(successes: int, trials: int, *, alpha: float = 0.05) -> float:
 
 
 def _scenario_passes(config: dict[str, Any], commitment_mw: float, disturbance,
-                     assumptions: UncertaintyAssumptions, *, recovery_aware: bool = False) -> bool:
+                     assumptions: UncertaintyAssumptions, *, recovery_aware: bool = False,
+                     meter_margin_mw: float | None = None,
+                     observed_noise: bool = False) -> bool:
     facility=config["facility"]
     battery=config["battery"]
     event=config["grid_event"]
@@ -29,8 +31,12 @@ def _scenario_passes(config: dict[str, Any], commitment_mw: float, disturbance,
         return False
     flexible_capacity=max(0.0,cap-disturbance.urgent_reclaim_mw)
     # Reserve a one-sided 99% Gaussian meter-noise margin in the dispatch.
-    meter_margin=NormalDist().inv_cdf(0.99)*assumptions.meter_noise_std_mw
+    meter_margin=(NormalDist().inv_cdf(0.99)*assumptions.meter_noise_std_mw
+                  if meter_margin_mw is None else meter_margin_mw)
     planned_reduction=commitment_mw+meter_margin
+    if observed_noise:
+        # v2 dispatch observes the interval's meter noise and plans for it.
+        planned_reduction=max(0.0,planned_reduction+disturbance.meter_noise_mw)
     compute_reduction=min(planned_reduction,flexible_capacity)
     residual=max(0.0,planned_reduction-compute_reduction)
     energy_mwh=max(0.0,(usable_soc-float(battery["min_soc"]))*float(battery["capacity_mwh"])
@@ -98,7 +104,9 @@ def _scenario_passes(config: dict[str, Any], commitment_mw: float, disturbance,
 def evaluate_commitment(config: dict[str, Any], commitment_mw: float, *,
                         n_scenarios: int = 1000, seed: int = 100_000,
                         assumptions: UncertaintyAssumptions | None = None,
-                        confidence: float = 0.95, recovery_aware: bool = False) -> dict:
+                        confidence: float = 0.95, recovery_aware: bool = False,
+                        meter_margin_mw: float | None = None,
+                        observed_noise: bool = False) -> dict:
     if n_scenarios <= 0:
         raise ValueError("n_scenarios must be positive")
     if not 0 < confidence < 1:
@@ -108,7 +116,8 @@ def evaluate_commitment(config: dict[str, Any], commitment_mw: float, *,
         raise ValueError("commitment must be between zero and the grid request")
     a=assumptions or UncertaintyAssumptions()
     passed=sum(_scenario_passes(config,commitment_mw,generate_uncertainty_scenario(seed+i,a),a,
-                                recovery_aware=recovery_aware)
+                                recovery_aware=recovery_aware,meter_margin_mw=meter_margin_mw,
+                                observed_noise=observed_noise)
                for i in range(n_scenarios))
     alpha=1-confidence
     estimate=passed/n_scenarios
@@ -128,7 +137,9 @@ def calibrate_commitment(config: dict[str, Any], *, n_scenarios: int = 1000,
                          seed: int = 100_000, step_mw: float = 0.1,
                          target_reliability: float | None = None,
                          assumptions: UncertaintyAssumptions | None = None,
-                         confidence: float = 0.95, recovery_aware: bool = False) -> dict:
+                         confidence: float = 0.95, recovery_aware: bool = False,
+                         meter_margin_mw: float | None = None,
+                         observed_noise: bool = False) -> dict:
     if n_scenarios <= 0:
         raise ValueError("n_scenarios must be positive")
     if not 0 < confidence < 1:
@@ -148,7 +159,9 @@ def calibrate_commitment(config: dict[str, Any], *, n_scenarios: int = 1000,
     trials=[generate_uncertainty_scenario(seed+i,a) for i in range(n_scenarios)]
     evidence=[]
     for candidate in candidates:
-        passed=sum(_scenario_passes(config,candidate,s,a,recovery_aware=recovery_aware) for s in trials)
+        passed=sum(_scenario_passes(config,candidate,s,a,recovery_aware=recovery_aware,
+                                          meter_margin_mw=meter_margin_mw,
+                                          observed_noise=observed_noise) for s in trials)
         lower=wilson_lower(passed,n_scenarios,alpha=alpha)
         evidence.append({"commitment_mw":candidate,"successes":passed,"sample_count":n_scenarios,
                          "estimated_reliability":passed/n_scenarios,

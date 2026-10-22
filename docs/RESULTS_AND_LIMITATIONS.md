@@ -48,6 +48,35 @@ Paired exact McNemar comparison: fixed-horizon versus each rolling arm had 440 r
 
 Paired-bootstrap 95% CI for fixed minus rolling risk-aware MPC: mean delivered MW [-0.04329, -0.03659]; mean shortfall energy [0.03250, 0.03835] MWh/scenario; recovery rebound peak [-0.01199, -0.01014] MW. Thus rolling had higher delivered power and slightly higher rebound peak. Solver runtime is not compared by paired CI: fixed-horizon's 0.0345 s is a one-time schedule solve reused for the test set, while rolling reports per-scenario event solve time. The evaluator's measured test-plus-summary runtime was 1,848.82 s (30m 48.82s); calibration took 0.40 s. The raw JSON and per-scenario CSV are not present in the current checkout; generated `results/` files are ignored by Git. Re-run the command above to regenerate them. The aggregate values in this document are the recorded experiment summary.
 
+## Dispatch v2: diagnosis and held-out result
+
+Diagnosis, fix, and design are in `algorithm_design.md` (Dispatch v2). All v2 runs use the same calibration seeds (100000-100999) and held-out seeds (400000-404999) as the v1 run above.
+
+Command: `python -m evaluation.run_closed_loop --calibration-scenarios 1000 --calibration-seed 100000 --test-scenarios 5000 --test-seed 400000 --commitment-step-mw 0.05 --dispatch-policy v2 --output-dir results/closed-loop-fp001-v2-5000-step005`.
+
+With a 0.05 MW candidate step, v2 calibrates a **4.95 MW** commitment for both rolling arms. Held-out event and recovery success is 4,878 / 5,000 = **97.56%** (Wilson 95% interval 97.09-97.95%), with 122 scenarios with shortfall, no reserve violations, and mean delivered reduction 4.994 MW (v1 at 4.9 MW: 4.946 MW). Fixed horizon is unchanged at 88.96% (552 shortfall scenarios).
+
+An analytic bound shows this is the physical ceiling: a scenario is deliverable at commitment c if (4.0 - urgent reclaim) + min(3 MW x discharge scale, usable battery energy over the hour) - meter noise >= c. At 4.95 MW this holds in 4,878 / 5,000 scenarios. **v2 succeeded in all 4,878 of them and in none of the other 122 (0 feasible-but-failed).** The same bound at 4.9 MW is 99.16%, so v1's 97.76% left about 70 deliverable scenarios unserved. Against v1 at 4.9 MW on the same scenarios, v1 succeeded alone in 10 scenarios (the extra 0.05 MW cannot always be met) and v2 never succeeded alone; both failed in the same 112 scenarios. This is a trade of a small success rate for 0.05 MW more delivered power, not a strict dominance claim.
+
+Risk-aware MPC and RAFC-V again make identical commitments and outcomes on FP-001, because recovery is never binding there.
+
+## Recovery stress: where recovery-aware commitment matters
+
+FP-001 never stresses recovery, so RAFC-V cannot differ from risk-aware MPC. To test the recovery screen, the grid import ceiling during recovery was lowered from 20 MW to 18.2 MW and 18.0 MW (`configs/fp001_recovery_stress_18p2.yaml`, `..._18p0.yaml`; everything else unchanged). Same calibration seeds, 1,000 held-out events (seeds 400000-400999), v2 dispatch for both rolling arms, 0.1 MW step.
+
+| Recovery ceiling | Controller | Commitment | Event and recovery success |
+|---|---|---:|---:|
+| 18.2 MW | Rolling risk-aware MPC | 4.9 MW | 0 / 1,000 (0.00%) |
+| 18.2 MW | Rolling RAFC-V | 4.5 MW | 1,000 / 1,000 (100.00%) |
+| 18.2 MW | Fixed horizon | 4.5 MW | 892 / 1,000 (89.20%) |
+| 18.0 MW | Rolling risk-aware MPC | 4.9 MW | 0 / 1,000 (0.00%) |
+| 18.0 MW | Rolling RAFC-V | 3.8 MW | 999 / 1,000 (99.90%) |
+| 18.0 MW | Fixed horizon | 3.8 MW | 876 / 1,000 (87.60%) |
+
+Risk-aware MPC calibrates its commitment on the event alone, so it still promises 4.9 MW. The shared rolling dispatcher already requires a feasible RecoveryGuard end state, so it cannot meet 4.9 MW within the reduced recovery headroom: the event dispatch was infeasible in all 1,000 scenarios. RAFC-V's recovery screen lowers the commitment to one that recovery can absorb. Paired exact McNemar p-values for risk-aware MPC versus RAFC-V are about 4e-301 (18.0 MW) and 2e-301 (18.2 MW); fixed horizon versus RAFC-V are about 2e-37 and 6e-33.
+
+Interpretation limits: the ceilings were chosen to expose the recovery constraint, so this shows when the recovery-aware screen helps and not that it helps in general. The comparison is against an event-only commitment rule. An MPC that also screens recovery would be expected to match RAFC-V. The extra recovery constraint inside the shared dispatcher is what turns the recovery shortfall into an infeasible event for MPC.
+
 ## Assumptions and limitations
 
 - FP-001 uses modeled 20 MW facility baseline, 5 MW request, 60-minute event, and 17 MW recovery base; these are not facility measurements.

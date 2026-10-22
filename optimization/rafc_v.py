@@ -13,16 +13,21 @@ from simulator.uncertainty import UncertaintyAssumptions
 def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
                calibration_seed: int = 100_000, commitment_step_mw: float = 0.1,
                confidence: float = 0.95, rolling_reoptimization: bool = True,
-               observations: list[dict[str,float]] | None = None) -> dict:
+               observations: list[dict[str,float]] | None = None,
+               dispatch_policy: str = "v1") -> dict:
     """Calibrate an event commitment with a recovery feasibility screen, then optimize.
 
     Calibration evidence is distinct from held-out performance validation. The
     aggregate recovery screen avoids solving an LP for every sampled scenario;
     the chosen nominal event trace must still pass the RecoveryGuard LP.
     """
+    if dispatch_policy not in ("v1","v2"):
+        raise ValueError("dispatch_policy must be 'v1' or 'v2'")
     calibration=calibrate_commitment(
         config,n_scenarios=calibration_scenarios,seed=calibration_seed,
-        step_mw=commitment_step_mw,confidence=confidence,recovery_aware=True)
+        step_mw=commitment_step_mw,confidence=confidence,recovery_aware=True,
+        meter_margin_mw=0.0 if dispatch_policy=="v2" else None,
+        observed_noise=dispatch_policy=="v2")
     target=float(calibration["target_reliability"])
     passing=[row for row in calibration["candidate_evidence"]
              if row["simultaneous_lower_bound"]>=target]
@@ -33,7 +38,7 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
     recovery_failures=[]
     for row in passing:
         candidate=float(row["commitment_mw"])
-        dispatch=_dispatch(config,candidate,rolling_reoptimization,observations)
+        dispatch=_dispatch(config,candidate,rolling_reoptimization,observations,dispatch_policy)
         if dispatch["status"]=="solver_error":
             return _solver_error_result(dispatch,calibration,calibration_seed,
                                         "Event optimizer failed; no fallback schedule was used.")
@@ -58,7 +63,7 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
 
     if chosen is None:
         commitment=0.0
-        event_result=_dispatch(config,commitment,rolling_reoptimization,observations)
+        event_result=_dispatch(config,commitment,rolling_reoptimization,observations,dispatch_policy)
         if event_result["status"]=="solver_error":
             return _solver_error_result(event_result,calibration,calibration_seed,
                                         "Event optimizer failed; no fallback schedule was used.")
@@ -96,7 +101,7 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
         "selected_candidate_evidence":evidence,
         "recovery_feasibility_screen":"cumulative workload and AC charging feasibility by deadline under one shared grid headroom budget",
         "recovery_rejections":recovery_failures,
-        "rolling_reoptimization":rolling_reoptimization,
+        "rolling_reoptimization":rolling_reoptimization,"dispatch_policy":dispatch_policy,
         "reoptimization_count":event_result.get("telemetry",{}).get("reoptimization_count",0),
         "limitations":calibration["limitations"]}
     if status!="confirmed":
@@ -105,11 +110,15 @@ def run_rafc_v(config: dict[str, Any], *, calibration_scenarios: int = 1000,
     return event_result
 
 
-def _dispatch(config,candidate,rolling,observations):
+def _dispatch(config,candidate,rolling,observations,policy="v1"):
     if not rolling:
         return solve_deterministic_dispatch(config,accepted_commitment_mw=candidate)
     assumptions=UncertaintyAssumptions()
     margin=NormalDist().inv_cdf(0.99)*assumptions.meter_noise_std_mw
+    if policy=="v2":
+        return solve_rolling_event_dispatch(config,accepted_commitment_mw=candidate,
+            observations=observations,delivery_margin_mw=margin,
+            forecast="persistence",soft_margin=True)
     return solve_rolling_event_dispatch(config,accepted_commitment_mw=candidate,
         observations=observations,delivery_margin_mw=margin)
 
