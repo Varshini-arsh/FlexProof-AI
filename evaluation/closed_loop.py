@@ -110,6 +110,7 @@ def run_closed_loop_rafc_evaluation(
     test_seed: int = 400_000, commitment_step_mw: float = 0.1,
     confidence: float = 0.95, assumptions: UncertaintyAssumptions | None = None,
     output_dir: str | Path | None = None, dispatch_policy: str = "v1",
+    test_assumptions: UncertaintyAssumptions | None = None,
 ) -> dict:
     """Run paired fixed, rolling risk-aware, and rolling RAFC-V test controllers.
 
@@ -142,6 +143,8 @@ def run_closed_loop_rafc_evaluation(
                        if dispatch_policy == "v2" else {})
 
     a = assumptions or UncertaintyAssumptions()
+    # Held-out disturbances may come from a separate data split (e.g. later trace days).
+    test_a = test_assumptions or a
     cal_start = perf_counter()
     rafc_cal = calibrate_commitment(
         config, n_scenarios=calibration_scenarios, seed=calibration_seed,
@@ -163,7 +166,9 @@ def run_closed_loop_rafc_evaluation(
     dt = float(config["grid_event"]["interval_minutes"]) / 60.0
     nsteps = int(config["grid_event"]["duration_minutes"]) // int(config["grid_event"]["interval_minutes"])
     meter_margin = NormalDist().inv_cdf(0.99) * a.meter_noise_std_mw
-    fixed_target = commitments["rolling_rafc_v"] + meter_margin
+    # The margin cannot push the schedule above the grid request (full-request commitments).
+    fixed_target = min(commitments["rolling_rafc_v"] + meter_margin,
+                       float(config["grid_event"]["requested_reduction_mw"]))
     fixed_start = perf_counter()
     fixed = solve_deterministic_dispatch(config, accepted_commitment_mw=fixed_target)
     fixed_runtime = perf_counter() - fixed_start
@@ -179,14 +184,14 @@ def run_closed_loop_rafc_evaluation(
     experiment_started = perf_counter()
 
     for offset in range(test_scenarios):
-        disturbance = generate_uncertainty_scenario(test_seed + offset, a)
+        disturbance = generate_uncertainty_scenario(test_seed + offset, test_a)
         observed = {
             "available_flexible_compute_mw": max(
                 0.0, float(config["facility"]["deferrable_compute_mw"]) - disturbance.urgent_reclaim_mw
             ),
             "battery_discharge_scale": disturbance.battery_discharge_scale,
             "critical_power_delta_mw": disturbance.critical_power_delta_mw,
-            "meter_noise_mw": disturbance.meter_noise_mw,
+            "meter_noise_mw": disturbance.measured_offset_mw,
         }
         observations = [dict(observed) for _ in range(nsteps)]
         observations[0]["initial_soc_error"] = disturbance.initial_soc_error
@@ -197,6 +202,7 @@ def run_closed_loop_rafc_evaluation(
             "initial_soc_error": disturbance.initial_soc_error,
             "critical_power_delta_mw": disturbance.critical_power_delta_mw,
             "meter_noise_mw": disturbance.meter_noise_mw,
+            "baseline_drift_mw": disturbance.baseline_drift_mw,
         }
 
         dispatch_cache: dict[float, tuple[dict, float, str | None]] = {}
@@ -283,7 +289,7 @@ def run_closed_loop_rafc_evaluation(
             if soc < float(config["battery"]["min_soc"]) - 1e-8:
                 reserve_violations += 1
             backlog += curtail * dt
-            delivered = curtail + discharge - disturbance.meter_noise_mw
+            delivered = curtail + discharge - disturbance.measured_offset_mw
             fixed_deliveries.append(delivered)
             fixed_shortfalls.append(max(0.0, commitment - delivered))
         fixed_physical = {
@@ -394,7 +400,8 @@ def run_closed_loop_rafc_evaluation(
         "paired_disturbances": True,
         "dispatch_policy": dispatch_policy,
         "artifact_type": "experiment_result",
-        "assumptions": {key: getattr(a, key) for key in a.__dataclass_fields__},
+        "assumptions": _assumption_summary(a),
+        "test_assumptions": _assumption_summary(test_a),
         "commitment_calibration": {
             "rolling_rafc_v": rafc_cal,
             "rolling_risk_aware_mpc": risk_cal,
@@ -474,3 +481,17 @@ def _holm_adjust_pairwise(pairwise: dict) -> None:
         for rank, (key, pvalue) in enumerate(ordered):
             running = max(running, min(1.0, (count - rank) * pvalue))
             pairwise[key][field]["holm_adjusted_p_value"] = running
+
+
+def _assumption_summary(a: UncertaintyAssumptions) -> dict:
+    """JSON summary of assumptions; empirical drift samples are summarized, not listed."""
+    summary = {key: getattr(a, key) for key in a.__dataclass_fields__ if key != "baseline_drift_samples_mw"}
+    samples = a.baseline_drift_samples_mw
+    if samples:
+        values = np.asarray(samples, dtype=float)
+        summary["baseline_drift_samples"] = {
+            "count": int(values.size), "mean_mw": float(values.mean()),
+            "p50_mw": float(np.quantile(values, 0.5)), "p95_mw": float(np.quantile(values, 0.95)),
+            "max_mw": float(values.max()),
+        }
+    return summary

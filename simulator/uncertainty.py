@@ -15,8 +15,13 @@ class UncertaintyAssumptions:
     battery_derating_probability: float=0.05
     battery_derating_fraction: float=0.10
     meter_noise_std_mw: float=0.02
+    # Empirical baseline-drift samples (MW, positive = load above the pre-event
+    # baseline). Empty keeps the original modeled disturbance stream unchanged.
+    baseline_drift_samples_mw: tuple[float, ...]=()
 
     def __post_init__(self):
+        if not all(isfinite(v) for v in self.baseline_drift_samples_mw):
+            raise ValueError("baseline drift samples must be finite")
         vals=(self.initial_soc_error_bound,self.critical_power_std_mw,self.critical_power_truncation_mw,
               self.urgent_reclaim_probability,self.urgent_reclaim_mw,self.battery_derating_probability,
               self.battery_derating_fraction,self.meter_noise_std_mw)
@@ -50,7 +55,13 @@ class UncertaintyScenario:
     battery_derated: bool
     battery_discharge_scale: float
     meter_noise_mw: float
+    baseline_drift_mw: float=0.0
     def to_dict(self) -> dict: return asdict(self)
+
+    @property
+    def measured_offset_mw(self) -> float:
+        """Amount subtracted from the measured reduction: meter noise plus baseline drift."""
+        return self.meter_noise_mw+self.baseline_drift_mw
 
 def generate_uncertainty_scenario(seed: int, assumptions: UncertaintyAssumptions | None=None) -> UncertaintyScenario:
     if not isinstance(seed,int): raise ValueError("seed must be an integer")
@@ -65,9 +76,11 @@ def generate_uncertainty_scenario(seed: int, assumptions: UncertaintyAssumptions
             critical=float(rng.normal(0.0,a.critical_power_std_mw))
     reclaim=bool(rng.random()<a.urgent_reclaim_probability)
     derated=bool(rng.random()<a.battery_derating_probability)
+    noise=float(rng.normal(0.0,a.meter_noise_std_mw))
+    # Drawn last so seeds without drift samples reproduce earlier results exactly.
+    drift=float(rng.choice(a.baseline_drift_samples_mw)) if a.baseline_drift_samples_mw else 0.0
     return UncertaintyScenario(seed,soc,critical,reclaim,a.urgent_reclaim_mw if reclaim else 0.0,
-        derated,1.0-a.battery_derating_fraction if derated else 1.0,
-        float(rng.normal(0.0,a.meter_noise_std_mw)))
+        derated,1.0-a.battery_derating_fraction if derated else 1.0,noise,drift)
 
 def load_uncertainty_assumptions(source: str | Path | dict) -> UncertaintyAssumptions:
     if isinstance(source,dict): values=source

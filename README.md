@@ -66,6 +66,15 @@ The 112 failures above shared one cause: the controller spent battery energy on 
 - **RAFC-V wins when recovery is tight.** With the recovery grid ceiling lowered, risk-aware MPC still promises 4.9 MW and succeeds in 0 of 1,000 events. RAFC-V lowers its promise and succeeds in 999 of 1,000 (18.0 MW ceiling, commits 3.8 MW) and 1,000 of 1,000 (18.2 MW ceiling, commits 4.5 MW).
 - **Caveats.** In the base FP-001 setup recovery never binds, so RAFC-V and MPC still tie. The stress ceilings were chosen to expose the recovery constraint, and an MPC that also screens recovery would be expected to match RAFC-V. Details: [docs/RESULTS_AND_LIMITATIONS.md](docs/RESULTS_AND_LIMITATIONS.md). Aggregate result files are in `results/summaries/`.
 
+### Real-data validation (CAISO 2024 + Azure LLM inference)
+
+The modeled disturbances were replaced with public data. The grid events are 27 real CAISO 2024 stress events (real-time price at or above $200/MWh). The AI load is the Azure LLM inference trace from May 2024: its drift during each event reduces the measured cut, and its level after the event sets the recovery headroom. Commitments were calibrated on six trace days and tested on four unseen days.
+
+- **The modeled system over-promises.** Calibrated without real load drift, it promises 4.67 MW on average and meets it in 75.1% of held-out scenarios. On morning events it delivers 54%, and on events of 2 hours or more 13%. AI load typically rises about 1.4 MW in a one-hour event at 6 am, against 0.02 MW of modeled meter noise.
+- **Real-data RAFC-V** promises 4.23 MW on average with 95.8% mean success (risk-aware MPC: 4.33 MW, 92.2%). The 17 evening events under 2 hours are easy: 4.92 MW at 98.3%.
+- **RAFC-V beats MPC on one real event where recovery binds** (Jan 16, 5 hours, morning recovery): 1.5 MW at 94.0% vs 2.9 MW at 0%. On the other 25 events they tie.
+- **Caveats.** The 95% target is missed on 8 of 27 events, including every event of 165 minutes or more, because the test days had larger load swings than the calibration days. One week of AI load data is the main limit. Price spikes stand in for real dispatch instructions. Details: [docs/REAL_DATA_VALIDATION.md](docs/REAL_DATA_VALIDATION.md).
+
 ## Limits
 
 This is simulation evidence only. It is not measured facility performance, utility certification, or a claim that RAFC-V is better in general. The prototype has no user accounts and no production database.

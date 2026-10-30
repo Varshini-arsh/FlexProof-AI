@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "experiment_id": "real-data-caiso2024-azure-llm-2024",
+  "data_sources": {
+    "grid_events": "CAISO OASIS real-time 15-min LMP, SP15 hub, 2024; events = runs >= $200/MWh",
+    "ai_load": "Azure LLM inference trace 2024 (code + conversation), CC-BY 4.0, Stojkovic et al. HPCA 2025"
+  },
+  "calibration_days": [
+    "2024-05-09",
+    "2024-05-10",
+    "2024-05-11",
+    "2024-05-12",
+    "2024-05-13",
+    "2024-05-14"
+  ],
+  "test_days": [
+    "2024-05-15",
+    "2024-05-16",
+    "2024-05-17",
+    "2024-05-18"
+  ],
+  "power_mapping": {
+    "rated_critical_mw": 12.0,
+    "idle_fraction": 0.4,
+    "scheduled_non_deferred_mw": 1.0,
+    "baseline_window_minutes": 60
+  },
+  "events_found": 27,
+  "events_evaluated": 27,
+  "events_skipped": [],
+  "calibration_scenarios_per_event": 1000,
+  "test_scenarios_per_event": 200,
+  "dispatch_policy": "v2",
+  "mean_commitment_mw": {
+    "rafc_v": 4.233333333333333,
+    "mpc": 4.325925925925926,
+    "synthetic_only": 4.670370370370371
+  },
+  "mean_heldout_success": {
+    "rafc_v": 0.9579629629629629,
+    "mpc": 0.9222222222222222,
+    "fixed": 0.15685185185185185
+  },
+  "duration_weighted_heldout_success": {
+    "rafc_v": 0.8920676691729323,
+    "mpc": 0.746954887218045,
+    "fixed": 0.06522556390977444
+  },
+  "synthetic_only_mean_heldout_success": 0.7511111111111112,
+  "events_rafc_v_differs_from_mpc": 2,
+  "total_committed_mwh_rafc_v": 96.425,
+  "total_indicative_value_usd_rafc_v": 36744.412957249995,
+  "limitations": [
+    "Price spikes are a proxy for grid stress, not actual demand-response dispatch instructions.",
+    "The Azure trace covers about one week in May 2024; it is reused for events across 2024 by time of day.",
+    "Token throughput is a proxy for GPU power; the utilization-to-MW mapping is an assumption.",
+    "Battery, flexible-compute and other disturbances keep the modeled FP-001 assumptions.",
+    "Indicative value is committed MWh times the mean real-time price, not a program payment."
+  ]
+}
