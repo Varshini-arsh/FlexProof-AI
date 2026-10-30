@@ -36,14 +36,14 @@ def _scenario_passes(config: dict[str, Any], commitment_mw: float, disturbance,
     planned_reduction=commitment_mw+meter_margin
     if observed_noise:
         # v2 dispatch observes the interval's meter noise and plans for it.
-        planned_reduction=max(0.0,planned_reduction+disturbance.meter_noise_mw)
+        planned_reduction=max(0.0,planned_reduction+disturbance.measured_offset_mw)
     compute_reduction=min(planned_reduction,flexible_capacity)
     residual=max(0.0,planned_reduction-compute_reduction)
     energy_mwh=max(0.0,(usable_soc-float(battery["min_soc"]))*float(battery["capacity_mwh"])
                    *float(battery["discharge_efficiency"]))
     discharge=min(residual,float(battery["max_discharge_mw"])*disturbance.battery_discharge_scale,
                   energy_mwh/duration_h)
-    delivered=compute_reduction+discharge-disturbance.meter_noise_mw
+    delivered=compute_reduction+discharge-disturbance.measured_offset_mw
     if commitment_mw <= 1e-12:
         return True
     # Static schedule repeats at each event step; complete-event reliability is the
